@@ -1,0 +1,203 @@
+    1             /SERIAL-BASED DISK SYSTEM TEST
+    2             /KYLE OWEN - 1/28/2014
+    3             
+    4       0003  VERS="C&77
+    5             
+    6       6400  BASER=6400
+    7       6410  BASET=6410
+    8             /BASER=6030
+    9             /BASET=6040
+   10             
+   11       6400  SKCF=BASER
+   12       6401  SKSF=BASER+1
+   13       6402  SKCC=BASER+2
+   14       6404  SKRS=BASER+4
+   15       6405  SKIE=BASER+5
+   16       6406  SKRB=BASER+6
+   17             
+   18       6410  STFL=BASET
+   19       6411  STSF=BASET+1
+   20       6412  STCF=BASET+2
+   21       6414  STPC=BASET+4
+   22       6415  STSK=BASET+5
+   23       6416  STLS=BASET+6
+   24             
+   25       0000          *0
+   26 00000 4454  TEST,   JMS I ENTRY
+   27 00001 2010          2010            /READ 0020 PAGES IN FIELD 1
+   28 00002 0000          0000            /FROM 0000
+   29 00003 0000  RBLK,   0000            /STARTING BLOCK 0000
+   30 00004 7402          HLT             /ERROR EXIT
+   31 00005 7300          CLA CLL
+   32 00006 7404          OSR
+   33 00007 7010          RAR
+   34 00010 7430          SZL
+   35 00011 7402          HLT
+   36 00012 4454          JMS I ENTRY
+   37 00013 2010          2010            /READ 0020 PAGES IN FIELD 1
+   38 00014 4000          4000            /FROM 4000
+   39 00015 0010  RBLK2,  0010            /STARTING BLOCK 0010
+   40 00016 7402          HLT             /ERROR EXIT
+   41 00017 7300          CLA CLL
+   42 00020 7404          OSR
+   43 00021 7012          RTR
+   44 00022 7430          SZL
+   45 00023 7402          HLT
+   46 00024 4454          JMS I ENTRY
+   47 00025 6010          6010            /WRITE 0020 PAGES IN FIELD 1
+   48 00026 4000          4000            /FROM 4000
+   49 00027 0000  WBLK,   0000            /STARTING BLOCK 0000
+   50 00030 7402          HLT             /ERROR EXIT
+   51 00031 7300          CLA CLL
+   52 00032 7404          OSR
+   53 00033 7012          RTR
+   54 00034 7010          RAR
+   55 00035 7430          SZL
+
+
+
+      /SERIAL-BASED DISK SYSTEM TEST                                      Page 1
+
+
+   56 00036 7402          HLT
+   57 00037 4454          JMS I ENTRY
+   58 00040 6010          6010            /WRITE 0020 PAGES IN FIELD 1
+   59 00041 0000          0000            /FROM 0000
+   60 00042 0010  WBLK2,  0010            /STARTING BLOCK 0010
+   61 00043 7402          HLT             /ERROR EXIT
+   62 00044 7300          CLA CLL
+   63 00045 7404          OSR
+   64 00046 7012          RTR
+   65 00047 7012          RTR
+   66 00050 7430          SZL
+   67 00051 7402          HLT
+   68 00052 5000          JMP TEST
+   69 00053 0020  INCR,   0020
+   70 00054 7660  ENTRY,  ENTRY2
+   71             
+   72       7600          *7600
+   73 07600 0000          ZBLOCK 7
+      07601 0000
+      07602 0000
+      07603 0000
+      07604 0000
+      07605 0000
+      07606 0000
+   74 07607 0003  ENTRY1, VERS
+   75 07610 7300          CLA CLL         /CLEAR LINK FOR FIRST PLATTER
+   76 07611 6400  SETUP,  SKCF            /CLEAR RECEIVE FLAG
+   77 07612 1336          TAD WKUP        /ADD WAKEUP CHARACTER
+   78 07613 4266          JMS SENDC       /SEND WAKEUP CHARACTER
+   79 07614 7200          CLA
+   80 07615 6214          RDF             /GET CURRENT FIELD
+   81 07616 1333          TAD SCDI        /ADD CDI
+   82 07617 3327          DCA SFIELD      /DEPOSIT MODIFIED CIF
+   83                     /SKSF           /WAIT FOR RESPONSE
+   84                     /JMP .-1
+   85                     /SKCF           /CLEAR FLAG
+   86 07620 1607          TAD I ENTRY1    /GET FUNCTION
+   87 07621 4273          JMS SNDNUM      /TELL SERVER FUNCTION
+   88 07622 2207          ISZ ENTRY1      /LOOK AT BUFFER ADDRESS
+   89 07623 1607          TAD I ENTRY1    /GET BUFFER ADDRESS
+   90 07624 4273          JMS SNDNUM      /TELL SERVER BUFFER ADDRESS
+   91 07625 1607          TAD I ENTRY1    /GET BUFFER ADDRESS
+   92 07626 3334          DCA SLOC        /STORE BUFFER ADDRESS
+   93 07627 2207          ISZ ENTRY1      /LOOK AT STARTING BLOCK NUMBER
+   94 07630 1607          TAD I ENTRY1    /GET STARTING BLOCK NUMBER
+   95 07631 4273          JMS SNDNUM      /TELL SERVER STARTING BLOCK NUMBER
+   96 07632 2207          ISZ ENTRY1      /LOOK AT ERROR RETURN
+   97 07633 4301          JMS GETNUM      /RECEIVE CDF INSTRUCTION
+   98 07634 3250          DCA CDFSTO
+   99 07635 4301          JMS GETNUM      /RECEIVE NEGATIVE WORD COUNT
+
+
+
+      /SERIAL-BASED DISK SYSTEM TEST                                      Page 2
+
+
+  100 07636 3335          DCA WORDCT
+  101 07637 4301  GETACK, JMS GETNUM      /4000=READ, 4001=WRITE, 0000=DONE, 2000=ERROR
+  102 07640 7450          SNA             /WAS IT ZERO?
+  103 07641 5326          JMP EXIT        /YES, EXIT
+  104 07642 7104          CLL RAL         /NO, IS HIGH BIT SET?
+  105 07643 7420          SNL
+  106 07644 5331          JMP ERROR       /NO, ERROR!
+  107 07645 7640          SZA CLA         /YES, READ OR WRITE?
+  108 07646 5313          JMP TXPG        /TIME TO WRITE
+  109             
+  110 07647 4301  RXLP,   JMS GETNUM      /GET WORD
+  111 07650 7402  CDFSTO, HLT             /MODIFIED TO CDF
+  112 07651 3734          DCA I SLOC      /STORE CONTENTS
+  113 07652 6201          CDF 0
+  114 07653 2334          ISZ SLOC        /NEXT LOCATION
+  115 07654 7000          NOP
+  116 07655 2335          ISZ WORDCT      /INCREMENT WORD COUNT...DONE?
+  117 07656 5247          JMP RXLP        /NO, KEEP LOOPING
+  118 07657 5237          JMP GETACK      /ANY OTHER REQUESTS?
+  119             
+  120 07660 0003  ENTRY2, VERS            /SECOND ENTRY POINT
+  121 07661 7200          CLA
+  122 07662 1260          TAD ENTRY2      /GET ARGUMENT ADDRESS
+  123 07663 3207          DCA ENTRY1      /STORE IT IN COMMON PLACE
+  124 07664 7301          CLA CLL IAC     /SET AC = 1 FOR 2ND PLATTER
+  125 07665 5211          JMP SETUP       /CONTINUE WITH SETUP
+  126             
+  127 07666 0000  SENDC,  0               /SEND CHARACTER IN AC
+  128 07667 6416          STLS
+  129 07670 6411          STSF
+  130 07671 5270          JMP .-1
+  131 07672 5666          JMP I SENDC
+  132                     
+  133 07673 0000  SNDNUM, 0               /SEND NUMBER AS TWO CONSECUTIVE CHARACTERS
+  134 07674 4266          JMS SENDC       /SEND BOTTOM 8 BITS OF WORD
+  135 07675 7002          BSW             /SEND TOP 6 BITS OF WORD PLUS SOME, LET SERVER HANDLE IT
+  136 07676 4266          JMS SENDC
+  137 07677 7200          CLA
+  138 07700 5673          JMP I SNDNUM
+  139             
+  140 07701 0000  GETNUM, 0
+  141 07702 6402          SKCC            /CLEAR AC AND FLAG
+  142 07703 6401          SKSF            /SKIP IF FLAG SET
+  143 07704 5303          JMP .-1
+  144 07705 6406          SKRB            /READ BUFFER
+  145 07706 7002          BSW             /SWAP BYTES
+  146 07707 6401          SKSF            /SKIP IF FLAG SET
+  147 07710 5307          JMP .-1
+  148 07711 6404          SKRS            /OR BUFFER WITH AC
+  149 07712 5701          JMP I GETNUM
+
+
+
+      /SERIAL-BASED DISK SYSTEM TEST                                      Page 3
+
+
+  150             
+  151 07713 1250  TXPG,   TAD CDFSTO      /GET DATA FIELD
+  152 07714 3315          DCA TXCDF       /MODIFY CDF FOR TRANSFER
+  153 07715 7402  TXCDF,  HLT             /MODIFIED TO CDF
+  154 07716 1734          TAD I SLOC      /GET WORD
+  155 07717 6201          CDF 0           /BACK TO FIELD 0
+  156 07720 2334          ISZ SLOC        /NEXT LOCATION
+  157 07721 7000          NOP
+  158 07722 4273          JMS SNDNUM      /SEND IT
+  159 07723 2335          ISZ WORDCT      /INCREMENT WORD COUNT...DONE?
+  160 07724 5315          JMP TXCDF       /NO, KEEP LOOPING
+  161 07725 5237          JMP GETACK      /ANY MORE REQUESTS?
+  162             
+  163 07726 2207  EXIT,   ISZ ENTRY1      /NORMAL EXIT
+  164 07727 7402  SFIELD, HLT             /MODIFIED TO CDI
+  165 07730 5607          JMP I ENTRY1    /EXIT WITH FATAL ERROR
+  166 07731 7130  ERROR,  CLL CML RAR     /ROTATE ERROR CODE AND SET NEGATIVE BIT
+  167 07732 5327          JMP SFIELD      /ERROR EXIT
+  168                     
+  169 07733 6203  SCDI,   CDI 0
+  170 07734 0000  SLOC,   0
+  171 07735 0000  WORDCT, 0
+  172 07736 0101  WKUP,   101
+  173 07737 0000          ZBLOCK 7743-.
+      07740 0000
+      07741 0000
+      07742 0000
+  174             $
+
+      No detected errors

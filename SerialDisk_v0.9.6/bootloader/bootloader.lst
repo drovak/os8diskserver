@@ -1,0 +1,54 @@
+    1             /TOGGLE-IN (OR RIM/BIN IN) BOOTLOADER
+    2             /LOAD AT 0017
+    3             /START SERVER ON PC
+    4             /CLEAR/CONTINUE AT 0020
+    5             
+    6       6400  BASER=6400
+    7       6410  BASET=6410
+    8             /BASER=6030
+    9             /BASET=6040
+   10             
+   11       6400  SKCF=BASER
+   12       6401  SKSF=BASER+1
+   13       6402  SKCC=BASER+2
+   14       6404  SKRS=BASER+4
+   15       6405  SKIE=BASER+5
+   16       6406  SKRB=BASER+6
+   17             
+   18       6410  STFL=BASET
+   19       6411  STSF=BASET+1
+   20       6412  STCF=BASET+2
+   21       6414  STPC=BASET+4
+   22       6415  STSK=BASET+5
+   23       6416  STLS=BASET+6
+   24             
+   25       0000  BOOT=0000
+   26             
+   27       0017          *17
+   28 00017 0017  ADDR,   17
+   29                     ZBLOCK 20-.
+   30 00020 7240          CLA CMA         /AC=7777
+   31 00021 3017          DCA ADDR        /SET UP ADDRESS
+   32 00022 1045          TAD BOOTMS      /SEND BOOT MESSAGE TO SERVER
+   33 00023 6416          STLS
+   34 00024 6411          STSF
+   35 00025 5024          JMP .-1
+   36 00026 6402  RDLP,   SKCC            /CLEAR AC AND FLAG
+   37 00027 6401          SKSF            /SKIP IF FLAG SET
+   38 00030 5027          JMP .-1
+   39 00031 6406          SKRB            /READ BUFFER
+   40 00032 7106          CLL RTL         /ROTATE 6 LEFT
+   41 00033 7006          RTL
+   42 00034 7510          SPA             /CHANNEL 8 PUNCHED?
+   43 00035 5000          JMP BOOT        /YES, CONTINUE BOOTING
+   44 00036 7006          RTL
+   45 00037 6401          SKSF            /SKIP IF FLAG SET
+   46 00040 5037          JMP .-1
+   47 00041 6404          SKRS            /OR BUFFER WITH AC
+   48 00042 3417          DCA I ADDR      /STORE CONTENTS
+   49 00043 5026          JMP RDLP        /KEEP LOOPING
+   50 00044 7605  B7605,  7605            /ADDRESS OF OS/8 ENTRY
+   51 00045 0100  BOOTMS, 100             /"@" COMMAND TO SERVER
+   52             $
+
+      No detected errors
