@@ -19,10 +19,10 @@ take note of.
                           *** REQUIREMENTS ***
 
 Hardware requirements currently are a spare M8650/M8655 asynchronous serial
-interface card and the appropriate cables. The default address in the OS/8
-handler is 40/41 (the default auxiliary TTY ports). This can be changed if
-necessary. On the modern computer, at least one serial interface is required to
-talk to the PDP-8's second serial interface.
+interface card or equivalent and the appropriate cables. The default address
+in the OS/8 handler is 40/41 (the default auxiliary TTY ports). This can be
+changed if necessary. On the modern computer, at least one serial interface is
+required to talk to the PDP-8's second serial interface.
 
 Software requirements involve loading the system and/or non-system handlers into
 OS/8 using BUILD. The modern computer needs to support the disk server, which is
@@ -33,3 +33,8 @@ The disk server utilizes the standard dumprest RK05 disk image format. These
 images are exactly 3,325,952 bytes long, which is 1,662,976 12-bit words packed
 in 16 bits per word. The first half of the image corresponds to side 0, and the
 second half, side 1. Typically, in OS/8 systems, SYS: is side 0. 
+
+                         *** SPECIAL THANKS ***
+
+David Gesswein's dumprest utilities for the PDP-8 have proved to be a tremendous
+help in the creation of the software herein. Thank you, David!
