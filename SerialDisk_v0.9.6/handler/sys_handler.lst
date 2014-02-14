@@ -1,0 +1,244 @@
+    1             /SERIAL-BASED DISK SYSTEM
+    2             /KYLE OWEN - 1/28/2014
+    3             
+    4       0003  VERS="C&77
+    5             
+    6       6400  BASER=6400
+    7       6410  BASET=6410
+    8             /BASER=6030
+    9             /BASET=6040
+   10             
+   11       6400  SKCF=BASER
+   12       6401  SKSF=BASER+1
+   13       6402  SKCC=BASER+2
+   14       6404  SKRS=BASER+4
+   15       6405  SKIE=BASER+5
+   16       6406  SKRB=BASER+6
+   17             
+   18       6410  STFL=BASET
+   19       6411  STSF=BASET+1
+   20       6412  STCF=BASET+2
+   21       6414  STPC=BASET+4
+   22       6415  STSK=BASET+5
+   23       6416  STLS=BASET+6
+   24             
+   25       6260  BLKNUM=6260
+   26             
+   27             /A OR B - COMMAND SERVER, SIDE 0 OR 1
+   28             /@ - SEND BOOT CODE
+   29             
+   30       0000          *0
+   31 00000 7775          -3              /THREE DEVICES
+   32 00001 2322          DEVICE SRV; DEVICE SYS;  4640; ENTRY1&177+2000; 0; BLKNUM
+      00002 2600
+      00003 2331
+      00004 2300
+      00005 4640
+      00006 2007
+      00007 0000
+      00010 6260
+   33 00011 2322          DEVICE SRV; DEVICE SRV1; 4640; ENTRY1&177+1000; 0; BLKNUM
+      00012 2600
+      00013 2322
+      00014 2661
+      00015 4640
+      00016 1007
+      00017 0000
+      00020 6260
+   34 00021 2322          DEVICE SRV; DEVICE SRV2; 4640; ENTRY2&177+1000; 0; BLKNUM
+      00022 2600
+      00023 2322
+      00024 2662
+      00025 4640
+      00026 1061
+      00027 0000
+      00030 6260
+
+
+
+      /SERIAL-BASED DISK SYSTEM                                           Page 1
+
+
+   35 00031 7732          BOOT-ENDB
+   36             
+   37                     RELOC 0
+   38             
+   39 00000 7200  BOOT,   CLA
+   40 00001 1413          TAD I BOOTX1    /COPY FROM 00200-00400 TO 07600-00000
+   41 00002 3414          DCA I BOOTX2
+   42 00003 1415          TAD I BOOTX3    /COPY FROM 00047-00247 TO 17647-10047
+   43 00004 6211          CDF 10
+   44 00005 3416          DCA I BOOTX4
+   45 00006 6201          CDF 0
+   46 00007 1014          TAD BOOTX2
+   47 00010 7640          SZA CLA         /DONE?
+   48 00011 5001          JMP BOOT+1      /NO, KEEP COPYING
+   49 00012 5444          JMP I B7605     /JUMP TO OS/8
+   50 00013 0177  BOOTX1, 177
+   51 00014 7577  BOOTX2, 7577
+   52 00015 0046  BOOTX3, 46
+   53 00016 7646  BOOTX4, 7646
+   54 00017 0017  ADDR,   17
+   55                     ZBLOCK 20-.
+   56 00020 7240          CLA CMA         /AC=7777
+   57 00021 3017          DCA ADDR        /SET UP ADDRESS
+   58 00022 1045          TAD BOOTMS      /SEND BOOT MESSAGE TO SERVER
+   59 00023 6416          STLS
+   60 00024 6411          STSF
+   61 00025 5024          JMP .-1
+   62 00026 6402  RDLP,   SKCC            /CLEAR AC AND FLAG
+   63 00027 6401          SKSF            /SKIP IF FLAG SET
+   64 00030 5027          JMP .-1
+   65 00031 6406          SKRB            /READ BUFFER
+   66 00032 7106          CLL RTL         /ROTATE 6 LEFT
+   67 00033 7006          RTL
+   68 00034 7510          SPA             /CHANNEL 8 PUNCHED?
+   69 00035 5000          JMP BOOT        /YES, CONTINUE BOOTING
+   70 00036 7006          RTL
+   71 00037 6401          SKSF            /SKIP IF FLAG SET
+   72 00040 5037          JMP .-1
+   73 00041 6404          SKRS            /OR BUFFER WITH AC
+   74 00042 3417          DCA I ADDR      /STORE CONTENTS
+   75 00043 5026          JMP RDLP        /KEEP LOOPING
+   76 00044 7605  B7605,  7605            /ADDRESS OF OS/8 ENTRY
+   77 00045 0100  BOOTMS, 100             /"@" COMMAND TO SERVER
+   78             ENDB,   RELOC
+   79             
+   80       0200          *200
+   81                     RELOC 7600
+   82 07600 0000          ZBLOCK 7
+      07601 0000
+      07602 0000
+
+
+
+      /SERIAL-BASED DISK SYSTEM                                           Page 2
+
+
+      07603 0000
+      07604 0000
+      07605 0000
+      07606 0000
+   83 07607 0003  ENTRY1, VERS
+   84 07610 7300          CLA CLL         /CLEAR LINK FOR FIRST PLATTER
+   85 07611 6405  SETUP,  SKIE            /ENSURE INTERRUPTS ARE DISABLED FOR KEYBOARD
+   86 07612 6400          SKCF            /CLEAR RECEIVE FLAG
+   87 07613 1337          TAD WKUP        /ADD WAKEUP CHARACTER
+   88 07614 4267          JMS SENDC       /SEND WAKEUP CHARACTER
+   89 07615 7200          CLA
+   90 07616 6214          RDF             /GET CURRENT FIELD
+   91 07617 1334          TAD SCDI        /ADD CDI
+   92 07620 3330          DCA SFIELD      /DEPOSIT MODIFIED CIF
+   93                     /SKSF           /WAIT FOR RESPONSE
+   94                     /JMP .-1
+   95                     /SKCF           /CLEAR FLAG
+   96                     /DCA  INTRPT    /CLEAR INTERRUPT STORAGE
+   97                     /SKON           /ARE INTERRUPTS ENABLED?
+   98                     /ISZ INTRPT     /NO (INTRPT=1)
+   99 07621 1607          TAD I ENTRY1    /GET FUNCTION
+  100 07622 4274          JMS SNDNUM      /TELL SERVER FUNCTION
+  101 07623 2207          ISZ ENTRY1      /LOOK AT BUFFER ADDRESS
+  102 07624 1607          TAD I ENTRY1    /GET BUFFER ADDRESS
+  103 07625 4274          JMS SNDNUM      /TELL SERVER BUFFER ADDRESS
+  104 07626 1607          TAD I ENTRY1    /GET BUFFER ADDRESS
+  105 07627 3335          DCA SLOC        /STORE BUFFER ADDRESS
+  106 07630 2207          ISZ ENTRY1      /LOOK AT STARTING BLOCK NUMBER
+  107 07631 1607          TAD I ENTRY1    /GET STARTING BLOCK NUMBER
+  108 07632 4274          JMS SNDNUM      /TELL SERVER STARTING BLOCK NUMBER
+  109 07633 2207          ISZ ENTRY1      /LOOK AT ERROR RETURN
+  110 07634 4302          JMS GETNUM      /RECEIVE CDF INSTRUCTION
+  111 07635 3251          DCA CDFSTO
+  112 07636 4302          JMS GETNUM      /RECEIVE NEGATIVE WORD COUNT
+  113 07637 3336          DCA WORDCT
+  114 07640 4302  GETACK, JMS GETNUM      /4000=READ, 4001=WRITE, 0000=DONE, 2000=ERROR
+  115 07641 7450          SNA             /WAS IT ZERO?
+  116 07642 5327          JMP EXIT        /YES, EXIT
+  117 07643 7104          CLL RAL         /NO, IS HIGH BIT SET?
+  118 07644 7420          SNL
+  119 07645 5332          JMP ERROR       /NO, ERROR!
+  120 07646 7640          SZA CLA         /YES, READ OR WRITE?
+  121 07647 5314          JMP TXPG        /TIME TO WRITE
+  122             
+  123 07650 4302  RXLP,   JMS GETNUM      /GET WORD
+  124 07651 7402  CDFSTO, HLT             /MODIFIED TO CDF
+  125 07652 3735          DCA I SLOC      /STORE CONTENTS
+  126 07653 6201          CDF 0
+  127 07654 2335          ISZ SLOC        /NEXT LOCATION
+  128 07655 7000          NOP
+
+
+
+      /SERIAL-BASED DISK SYSTEM                                           Page 3
+
+
+  129 07656 2336          ISZ WORDCT      /INCREMENT WORD COUNT...DONE?
+  130 07657 5250          JMP RXLP        /NO, KEEP LOOPING
+  131 07660 5240          JMP GETACK      /ANY OTHER REQUESTS?
+  132             
+  133 07661 0003  ENTRY2, VERS            /SECOND ENTRY POINT
+  134 07662 7200          CLA
+  135 07663 1261          TAD ENTRY2      /GET ARGUMENT ADDRESS
+  136 07664 3207          DCA ENTRY1      /STORE IT IN COMMON PLACE
+  137 07665 7301          CLA CLL IAC     /SET AC = 1 FOR 2ND PLATTER
+  138 07666 5211          JMP SETUP       /CONTINUE WITH SETUP
+  139             
+  140 07667 0000  SENDC,  0               /SEND CHARACTER IN AC
+  141 07670 6416          STLS
+  142 07671 6411          STSF
+  143 07672 5271          JMP .-1
+  144 07673 5667          JMP I SENDC
+  145                     
+  146 07674 0000  SNDNUM, 0               /SEND NUMBER AS TWO CONSECUTIVE CHARACTERS
+  147 07675 4267          JMS SENDC       /SEND BOTTOM 8 BITS OF WORD
+  148 07676 7002          BSW             /SEND TOP 6 BITS OF WORD PLUS SOME, LET SERVER HANDLE IT
+  149 07677 4267          JMS SENDC
+  150 07700 7200          CLA
+  151 07701 5674          JMP I SNDNUM
+  152             
+  153 07702 0000  GETNUM, 0
+  154 07703 6402          SKCC            /CLEAR AC AND FLAG
+  155 07704 6401          SKSF            /SKIP IF FLAG SET
+  156 07705 5304          JMP .-1
+  157 07706 6406          SKRB            /READ BUFFER
+  158 07707 7002          BSW             /SWAP BYTES
+  159 07710 6401          SKSF            /SKIP IF FLAG SET
+  160 07711 5310          JMP .-1
+  161 07712 6404          SKRS            /OR BUFFER WITH AC
+  162 07713 5702          JMP I GETNUM
+  163             
+  164 07714 1251  TXPG,   TAD CDFSTO      /GET DATA FIELD
+  165 07715 3316          DCA TXCDF       /MODIFY CDF FOR TRANSFER
+  166 07716 7402  TXCDF,  HLT             /MODIFIED TO CDF
+  167 07717 1735          TAD I SLOC      /GET WORD
+  168 07720 6201          CDF 0           /BACK TO FIELD 0
+  169 07721 2335          ISZ SLOC        /NEXT LOCATION
+  170 07722 7000          NOP
+  171 07723 4274          JMS SNDNUM      /SEND IT
+  172 07724 2336          ISZ WORDCT      /INCREMENT WORD COUNT...DONE?
+  173 07725 5316          JMP TXCDF       /NO, KEEP LOOPING
+  174 07726 5240          JMP GETACK      /ANY MORE REQUESTS?
+  175             
+  176 07727 2207  EXIT,   ISZ ENTRY1      /NORMAL EXIT
+  177 07730 7402  SFIELD, HLT             /MODIFIED TO CDI
+  178 07731 5607          JMP I ENTRY1    /EXIT
+
+
+
+      /SERIAL-BASED DISK SYSTEM                                           Page 4
+
+
+  179 07732 7130  ERROR,  CLL CML RAR     /ROTATE ERROR CODE AND SET NEGATIVE BIT
+  180 07733 5330          JMP SFIELD      /ERROR EXIT
+  181                     
+  182 07734 6203  SCDI,   CIF CDF 0
+  183 07735 0000  SLOC,   0
+  184 07736 0000  WORDCT, 0
+  185 07737 0101  WKUP,   101
+  186 07740 0000          ZBLOCK 7744-.
+      07741 0000
+      07742 0000
+      07743 0000
+  187                     RELOC
+  188             $
+
+      No detected errors
