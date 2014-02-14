@@ -40,6 +40,10 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <err.h>
+
+#include "config.h"
+#include "comm.h"
 
 #define TERM_COLOR
 
@@ -75,9 +79,6 @@
 
 int terminate = 0;
 
-#include "config.c"
-#include "comm.c"
-
 static const char usage[] = "Usage: %s -1 system [-2 disk2] [-r 1|2] [-w 1|2] [-b bootloader]\n";
 
 int initialize_xfr();
@@ -102,10 +103,10 @@ char* filename_btldr;
 char serial_dev[256];
 long baud;
 int two_stop;
-unsigned char buf[256];
-unsigned char converted_buf[256];
-unsigned char disk_buf[8200];
-unsigned char converted_disk_buf[8200];
+char buf[256];
+char converted_buf[256];
+char disk_buf[8200];
+char converted_disk_buf[8200];
 int direction;
 int buffer_addr;
 int start_block;
@@ -254,9 +255,6 @@ int main(int argc, char* argv[])
 	setup_config(&baud,&two_stop,serial_dev);
 	fd = init_comm(serial_dev,baud,two_stop);
 	
-	printf("Using serial port %s at %s with %s\n", 
-		serial_dev, baud_lookup[baud - 1].baud_str, (two_stop ? "2 stop bits" : "1 stop bit"));
-
 	if (send_btldr)
 	{
 		printf("Sending bootloader...\n");
