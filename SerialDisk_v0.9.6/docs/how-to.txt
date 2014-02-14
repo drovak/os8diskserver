@@ -30,7 +30,8 @@ actual distribution files within the SerialDisk_v0.9.6 directory.
 
 Change directory to 'SerialDisk_v0.9.6/server'. To compile, type 
 'gcc -o os8disk server.c'. This should compile the server with no 
-warnings or errors. If you have encountered an error, please report it by emailing Kyle Owen (kylevowen@gmail.com). 
+warnings or errors. If you have encountered an error, please report it by
+emailing Kyle Owen (kylevowen@gmail.com). 
 
 To test the server very quickly, just run the server with no arguments: 
 './os8disk'. You should see this printed:
@@ -58,7 +59,8 @@ for convenience.
 
 Run './instlhdnl' to see its usage. To put the SerialDisk system handler 
 on your RK05 image, run 
-'./instlhndl ../handler/sys_handler.bin ../disks/diagpack2.rk05', where diagpack2.rk05 is your disk image. 
+'./instlhndl ../handler/sys_handler.bin ../disks/diagpack2.rk05', where
+diagpack2.rk05 is your disk image. 
 
 Beware: this will modify the disk image, so make a backup if you need an 
 original copy later on. Running the installation will print out some 
