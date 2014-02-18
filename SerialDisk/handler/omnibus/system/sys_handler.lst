@@ -1,54 +1,54 @@
     1             /SERIAL-BASED DISK SYSTEM
-    2             /KYLE OWEN - 1/28/2014
-    3             
-    4       0003  VERS="C&77
-    5             
-    6       6400  BASER=6400
-    7       6410  BASET=6410
-    8             /BASER=6030
-    9             /BASET=6040
-   10             
-   11       6400  SKCF=BASER
-   12       6401  SKSF=BASER+1
-   13       6402  SKCC=BASER+2
-   14       6404  SKRS=BASER+4
-   15       6405  SKIE=BASER+5
-   16       6406  SKRB=BASER+6
-   17             
-   18       6410  STFL=BASET
-   19       6411  STSF=BASET+1
-   20       6412  STCF=BASET+2
-   21       6414  STPC=BASET+4
-   22       6415  STSK=BASET+5
-   23       6416  STLS=BASET+6
-   24             
-   25       6260  BLKNUM=6260
-   26             
+    2             /SYSTEM HANDLER FOR OMNIBUS
+    3             /KYLE OWEN - 2/17/2014
+    4             
+    5       0004  VERS="D&77
+    6             
+    7       6400  BASER=6400
+    8       6410  BASET=6410
+    9             
+   10       6400  SKCF=BASER
+   11       6401  SKSF=BASER+1
+   12       6402  SKCC=BASER+2
+   13       6404  SKRS=BASER+4
+   14       6405  SKIE=BASER+5
+   15       6406  SKRB=BASER+6
+   16             
+   17       6410  STFL=BASET
+   18       6411  STSF=BASET+1
+   19       6412  STCF=BASET+2
+   20       6414  STPC=BASET+4
+   21       6415  STSK=BASET+5
+   22       6416  STLS=BASET+6
+   23             
+   24       6260  BLKNUM=6260
+   25             
+   26             /HANDLER SENDS:
    27             /A OR B - COMMAND SERVER, SIDE 0 OR 1
    28             /@ - SEND BOOT CODE
    29             
    30       0000          *0
    31 00000 7775          -3              /THREE DEVICES
-   32 00001 2322          DEVICE SRV; DEVICE SYS;  4640; ENTRY1&177+2000; 0; BLKNUM
-      00002 2600
+   32 00001 2304          DEVICE SDSK; DEVICE SYS;  4640; ENTRY1&177+2000; 0; BLKNUM
+      00002 2313
       00003 2331
       00004 2300
       00005 4640
       00006 2007
       00007 0000
       00010 6260
-   33 00011 2322          DEVICE SRV; DEVICE SRV1; 4640; ENTRY1&177+1000; 0; BLKNUM
-      00012 2600
-      00013 2322
-      00014 2661
+   33 00011 2304          DEVICE SDSK; DEVICE SDA0; 4640; ENTRY1&177+1000; 0; BLKNUM
+      00012 2313
+      00013 2304
+      00014 0160
       00015 4640
       00016 1007
       00017 0000
       00020 6260
-   34 00021 2322          DEVICE SRV; DEVICE SRV2; 4640; ENTRY2&177+1000; 0; BLKNUM
-      00022 2600
-      00023 2322
-      00024 2662
+   34 00021 2304          DEVICE SDSK; DEVICE SDB0; 4640; ENTRY2&177+1000; 0; BLKNUM
+      00022 2313
+      00023 2304
+      00024 0260
       00025 4640
       00026 1061
       00027 0000
@@ -119,7 +119,7 @@
       07604 0000
       07605 0000
       07606 0000
-   83 07607 0003  ENTRY1, VERS
+   83 07607 0004  ENTRY1, VERS
    84 07610 7300          CLA CLL         /CLEAR LINK FOR FIRST PLATTER
    85 07611 6405  SETUP,  SKIE            /ENSURE INTERRUPTS ARE DISABLED FOR KEYBOARD
    86 07612 6400          SKCF            /CLEAR RECEIVE FLAG
@@ -175,7 +175,7 @@
   130 07657 5250          JMP RXLP        /NO, KEEP LOOPING
   131 07660 5240          JMP GETACK      /ANY OTHER REQUESTS?
   132             
-  133 07661 0003  ENTRY2, VERS            /SECOND ENTRY POINT
+  133 07661 0004  ENTRY2, VERS            /SECOND ENTRY POINT
   134 07662 7200          CLA
   135 07663 1261          TAD ENTRY2      /GET ARGUMENT ADDRESS
   136 07664 3207          DCA ENTRY1      /STORE IT IN COMMON PLACE
