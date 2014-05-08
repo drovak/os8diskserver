@@ -1,0 +1,7 @@
+TODO
+
+Fix directory structure in documentation
+"Request to read...": to -> from
+Disable interrupts
+System handler with OmniUSB ???
+Baud rates > 38400
