@@ -1,7 +1,7 @@
-*** Basic how-to guide for using SerialDisk server and handlers ***
-Written for: SerialDisk_v0.9.6
+## Basic how-to guide for using SerialDisk server and handlers ##
+### Written for: SerialDisk_v0.9.6 ###
 
-INTRODUCTION
+### INTRODUCTION ###
 
 At this point, you should have a working "family-of-8" computer with an 
 auxiliary teletype interface card. If you are not apt to edit source 
@@ -14,7 +14,7 @@ traditional M8650/M8655 asynchronous serial card. However, work is being
 done to improve compatibility with earlier machines, as well the DECmate 
 series.
 
-COMPILING THE PROGRAMS
+### COMPILING THE PROGRAMS ###
 
 Assuming you have a modern machine with the gcc compiler, go ahead and 
 clone the os8diskserver repository. 
@@ -28,13 +28,13 @@ within that directory.
 Once you've extracted the contents, you should see a README and the 
 actual distribution files within the SerialDisk_v0.9.6 directory. 
 
-Change directory to 'SerialDisk_v0.9.6/server'. To compile, type 
-'gcc -o os8disk server.c'. This should compile the server with no 
+Change directory to `SerialDisk_v0.9.6/server`. To compile, type 
+`gcc -o os8disk server.c`. This should compile the server with no 
 warnings or errors. If you have encountered an error, please report it by
 emailing Kyle Owen (kylevowen@gmail.com). 
 
 To test the server very quickly, just run the server with no arguments: 
-'./os8disk'. You should see this printed:
+`./os8disk`. You should see this printed:
 
 $ ./os8disk
 PDP-8 Disk Server for OS/8, v1.0
@@ -43,10 +43,11 @@ Usage: ./os8disk -1 system [-2 disk2] [-r 1|2] [-w 1|2] [-b bootloader]
 Now it's time to build the handler installer. This is a program that 
 will take an OS/8 formatted binary system handler and copy it to the 
 correct location on an RK05 disk image. Change your directory to 
-'../installer'. To build, type 'gcc -o instlhndl handler_installer.c'. 
-This should complete without warnings or errors.
+`../installer`. To build, type `gcc -o instlhndl handler_installer.c`. 
+This should complete without warnings or errors, but on some systems,
+including Mac OS
 
-INSTALLING THE SYSTEM HANDLER
+### INSTALLING THE SYSTEM HANDLER ###
 
 To use the handler installer, go grab an RK05 image (in the 
 dumprest/simh format) and place it in the ../disks directory. David 
@@ -57,37 +58,37 @@ which is needed later on. Two sample disk images are in the
 ../disks/original directory. You can copy diagpack2.rk05 into ../disks
 for convenience.
 
-Run './instlhdnl' to see its usage. To put the SerialDisk system handler 
+Run `./instlhdnl` to see its usage. To put the SerialDisk system handler 
 on your RK05 image, run 
-'./instlhndl ../handler/sys_handler.bin ../disks/diagpack2.rk05', where
+`./instlhndl [handler directory]/sys_handler.bin [disk directory]/diagpack2.rk05`, where
 diagpack2.rk05 is your disk image. 
 
 Beware: this will modify the disk image, so make a backup if you need an 
 original copy later on. Running the installation will print out some 
 debugging information. It should look something like this:
 
-$ ./instlhndl ../handler/sys_handler.bin ../disks/diagpack2.rk05
+$ ./instlhndl ../handler/omnibus/system/sys_handler.bin ../disks/diagpack2.rk05 
 Read 454 bytes of disk
-Read 573 bytes of handler
+Read 575 bytes of handler
 Position after leader: 0360
 Number of devices: 3
 Position of bootloader: 0446
 Position of handler: 0602
 
-CONFIGURING THE SERVER
+### CONFIGURING THE SERVER ###
 
 The SerialDisk server requires a configuration file just like the 
-dumprest tools. This file is called 'disk.cfg' and is in the server 
+dumprest tools. This file is called `disk.cfg` and is in the server 
 directory. Open it up with your favorite text editor and change the 
 configuration to suit your needs. The first line is the baud rate, the 
 second line is 0 for 1 stop bit, or 1 for two stop bits, and the last 
 line is the name of your serial device. 
 
-STARTING THE SERVER
+### STARTING THE SERVER ###
 
 At this point, we're ready to start the server. The server can handle up 
 to two disk images. To start the server, change the directory back to 
-'../server' and run './os8disk -1 ../disks/diagpack2.rk05'. The '-1' 
+`../server` and run `./os8disk -1 ../disks/diagpack2.rk05`. The `-1` 
 tells the disk server that the following image should be mounted as the 
 primary disk.
 
@@ -108,7 +109,7 @@ Be mindful: when you press this, the server is interrupted. Data will be
 lost if the PDP-8 is writing to the disk. It is typically best to stop 
 the server when the PDP-8 is not transacting data.
 
-BOOTING TO OS/8
+### BOOTING TO OS/8 ###
 
 The time has come to get your PDP-8 online with OS/8. We need to load 
 the bootloader into the computer. This is technically short enough to 
@@ -119,7 +120,7 @@ ftp://ftp.pdp8online.com/software/dumprest), but if you are not, please
 familiarize yourself with David Gesswein's project. 
 
 Assuming you have loaded the RIM loader, 
-'sendtape ../bootloader/bootloader.rim' will send the bootloader to the 
+`sendtape ../bootloader/bootloader.rim` will send the bootloader to the 
 PDP-8. After you have loaded with sendtape, you can switch your console 
 teletype or terminal back on.
 
@@ -156,7 +157,7 @@ Successfully completed read
 Congrats! But you're not done yet. There's no way to access the second 
 partition until we re-BUILD the system. 
 
-REBUILDING OS/8
+### REBUILDING OS/8 ###
 
 We successfully tricked OS/8 into booting by sneakily replacing the 
 system handler and bootloader on the disk. However, BUILD, RESORC, and 
@@ -172,7 +173,7 @@ disk and assemble them. We can use OS/8's EDIT to do this.
 #A[enter]
 
 EDIT is now ready to accept the text file. You can send 
-'../handler/nonsys_handler.pal' with your favorite terminal emulator. 
+`../handler/nonsys_handler.pal` with your favorite terminal emulator. 
 You may need to increase the character delay in order to get an accurate 
 transfer depending on the baud rate. 3 ms character delay and 20 ms line 
 delay is often a good starting point. If there is an error in 
@@ -184,8 +185,8 @@ Once done, press [enter] once, then control-L to get back to command
 mode, then type E[enter]. This will end the EDIT session and dump the 
 buffer to disk.
 
-Run EDIT again, and this time make a new file called 'SYS:DSKSYS.PA'. 
-Send it '../handler/sys_handler.pal' the same way you sent the other. 
+Run EDIT again, and this time make a new file called `SYS:DSKSYS.PA`. 
+Send it `../handler/sys_handler.pal` the same way you sent the other. 
 
 Once you've sent the two files, it's time to assemble them.
 
@@ -320,12 +321,12 @@ If this worked, congratulations. You now have a booting OS/8 system! You
 try bootloading the machine again to make sure BUILD worked correctly 
 installing the bootloader. 
 
-CONCLUSION
+### CONCLUSION ###
 
 Since you now have a fully-functional system, try out some programs. 
 BASIC works fine once you copy it to the SYS: partition. Again, you'll 
 need to delete some files from SYS: if you want to copy some programs 
-over. Try re-running the server with '-2 ../disks/diag-games-kermit.rk05' 
+over. Try re-running the server with `-2 ../disks/diag-games-kermit.rk05` 
 on the end to use the SD2 and SD3 partitions. This will allow systems
 (with enough memory) to play with MUSIC.SV, Adventure, etc. Note: you do 
 not have to halt the PDP-8 to swap out disks. Just make sure no data is 
