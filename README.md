@@ -1,12 +1,12 @@
 # OS/8 Disk Server Utilities #
-## Kyle Owen - 9 Feb. 2014 ##
-## kylevowen@gmail.com ##
+### Kyle Owen - 9 Feb. 2014 ###
+### kylevowen@gmail.com ###
 
 This suite of programs allows anyone with a PDP-8/E or later to communicate with
 a modern computer running Linux, Mac OS X, Windows with Cygwin, or any other
 POSIX-compliant system where a standard C compiler such as gcc exists. 
 
-## TERMS OF USE ##
+### TERMS OF USE ###
 
 The software is provided "as is" without a warranty of any kind, either express
 or implied.
@@ -16,7 +16,7 @@ applications, but in fairness to other users and the developer, any changes for
 improving the functionality of this program should be documented for others to
 take note of. 
 
-## REQUIREMENTS ##
+### REQUIREMENTS ###
 
 Hardware requirements currently are a second M8650/M8655 asynchronous serial
 interface card or equivalent and the appropriate cables. The default address
@@ -37,7 +37,7 @@ The disk server utilizes the standard dumprest/simh RK05 disk image format.
 These images are exactly 3,325,952 bytes long, which is 1,662,976 12-bit words 
 packed in 16 bits per word. The first half of the image corresponds to side 0, and the second half, side 1. Typically, in OS/8 systems, SYS: is side 0. 
 
-## SPECIAL THANKS ##
+### SPECIAL THANKS ###
 
 David Gesswein's dumprest utilities for the PDP-8 have proved to be a tremendous
 help in the creation of the software herein. Thank you, David!
