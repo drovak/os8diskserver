@@ -31,6 +31,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <err.h>
 
 #define TERM_COLOR
 
@@ -245,8 +246,8 @@ int main(int argc, char* argv[])
 	setup_config(&baud,&two_stop,serial_dev);
 	fd = init_comm(serial_dev,baud,two_stop);
 	
-	printf("Using serial port %s at %s with %s\n", 
-		serial_dev, baud_lookup[baud - 1].baud_str, (two_stop ? "2 stop bits" : "1 stop bit"));
+	printf("Using serial port %s at %lu with %s\n", 
+		serial_dev, baud, (two_stop ? "2 stop bits" : "1 stop bit"));
 
 	if (send_btldr)
 	{
