@@ -45,7 +45,9 @@ will take an OS/8 formatted binary system handler and copy it to the
 correct location on an RK05 disk image. Change your directory to 
 `../installer`. To build, type `gcc -o instlhndl handler_installer.c`. 
 This should complete without warnings or errors, but on some systems,
-including Mac OS
+including Mac OS X with `clang`, you may get some warnings regarding passing
+certain character arrays and pointer conversion. Not to worry, it should work
+just fine.
 
 ### INSTALLING THE SYSTEM HANDLER ###
 
@@ -69,11 +71,11 @@ debugging information. It should look something like this:
 
 	$ ./instlhndl ../handler/omnibus/system/sys_handler.bin ../disks/diagpack2.rk05 
 	Read 454 bytes of disk
-	Read 575 bytes of handler
+	Read 584 bytes of handler
 	Position after leader: 0360
 	Number of devices: 3
-	Position of bootloader: 0446
-	Position of handler: 0602
+	Position of bootloader: 0450
+	Position of handler: 0604
 
 ### CONFIGURING THE SERVER ###
 
@@ -224,10 +226,9 @@ Let's look at what devices are already LOaded in BUILD:
 	$
 
 You can see there are lots of handlers already in place with this 
-particular disk image. I don't have any other storage mediums on this 
-list, so I've UNloaded all of the unnecessary ones. You will need to 
-UNload a few (or at least DElete a couple) so that the new handlers will 
-fit.
+particular disk image. I opted to remove the batch and line printer
+handlers. You'll also need to remove the RK8E system handler; feel
+free to leave the RK05 handler, though.
 
 	$UN BAT
 
@@ -235,84 +236,95 @@ fit.
 
 	$UN RK8E
 
-	$UN RK05
-
-	$UN RX02
-
-	$UN TD8A
-
-	$UN RL0
-
 	$
 
-Now we can LOad the newly-assembled handlers into BUILD.
-
-	$LO SYS:DSKNSY
+Now we can LOad the newly-assembled handlers into BUILD, and INsert the
+handlers we need. In order to keep the number of handlers under 15 for
+BUILD to work properly, we'll also need to DElete another couple of handlers;
+I chose to get rid of the DECtape handlers.
 
 	$LO SYS:DSKSYS
 
 	$PR
 
 	KL8E: *TTY
-	SRV :  SYS   SRV0  SRV1
-	SDSK:  SD0   SD1   SD2   SD3
+	RK05: *RKA0 *RKB0 *RKA1 *RKB1  RKA2  RKB2  RKA3  RKB3
+	RX02: *RXA0 *RXA1
+	TD8A: *DTA0 *DTA1
+	RL0 : *RL0A *RL0B
+	SDSK:  SYS   SDA0  SDB0
 
 	DSK=RK8E:SYS
-	$
+	$IN SDSK:SYS,SDA0,SDB0
 
-Let's INsert the handlers we need and configure DSK: to a valid handler. 
-As it is currently, SYS=SRV0=SD0 and SRV1=SD1; that is, they point to 
-the same partitions on the server, which are the two partitions on the 
-first disk. SD2 and SD3 point to the two partitions on the optional 
-second disk. However, SDSK is the non-system handler and can be used 
-even if your system disk is not the SerialDisk server.
-
-	$IN SRV:SYS,SRV1
-
-	$IN SDSK:SD0,SD1,SD2,SD3
-
-	$DSK=SYS
+	$LO SYS:DSKNSY
 
 	$PR
 
 	KL8E: *TTY
-	SRV : *SYS   SRV0 *SRV1
-	SDSK: *SD0  *SD1  *SD2  *SD3
+	RK05: *RKA0 *RKB0 *RKA1 *RKB1  RKA2  RKB2  RKA3  RKB3
+	RX02: *RXA0 *RXA1
+	TD8A: *DTA0 *DTA1
+	RL0 : *RL0A *RL0B
+	SDSK: *SYS  *SDA0 *SDB0
+	SDSK:  SDA0  SDB0  SDA1  SDB1
 
-	DSK=SRV:SYS
+	DSK=RK8E:SYS
+	$IN SDSK:SDA1,SDB1
+
+	$DSK=SYS
+
+	$DE DTA0-1
+
+	$PR
+
+	KL8E: *TTY
+	RK05: *RKA0 *RKB0 *RKA1 *RKB1  RKA2  RKB2  RKA3  RKB3
+	RX02: *RXA0 *RXA1
+	TD8A:  DTA0  DTA1
+	RL0 : *RL0A *RL0B
+	SDSK: *SYS  *SDA0 *SDB0
+	SDSK:  SDA0  SDB0 *SDA1 *SDB1
+
+	DSK=SDSK:SYS
 	$
 
-I've chosen DSK: as SYS (the first partition on the primary disk), but 
-this can be SRV1: if you prefer. 
+As it is currently, SYS=SDA0; that is, they point to 
+the same partition on the server. By LOading the system
+handler first, we can ensure that the system uses the system
+handler for the first two partitions. That way, OS/8 only has
+to go to the disk to fetch the non-system handler for SDA1/SDB1. 
 
 Now it's time to BOot the system, configuring it the way we have 
 described. Once built, save BUILD so that next time we call it for 
 modifications, it knows what the current configuration is. 
 Unfortunately, SYS: is virtually full right now (with one block free), 
-so you'll have to save it to SD1:. No worries; you can copy it over to 
+so you'll have to save it to SDB0:. No worries; you can copy it over to 
 SYS: later once you free up some blocks.
 
 	$BO
 	SYS BUILT
-	.SAVE SD1 BUILD
+	.SAVE SDB0 BUILD
 
 	.
 
 That's it! You're all done. To test out the handlers, try printing the 
-directory of SD1. If this works, you know you've successfully gotten the 
+directory of SDB0. If this works, you know you've successfully gotten the 
 handlers installed.
 
-	.DIR SD1:/P
+	.DIR SDB0:/P
 
 
 
 	ABSLDR.SV   6            RL2SY .BH   2            DHTAAC.DG  17
-
+	CCL   .SV  31            RL20  .BH   2            DHTABC.DG  13
+	DIRECT.SV   7            RL21  .BH   2            DHTMAB.DG  17
 [snip]
+	RL0   .BH   2            DHKLBB.DG  13            RKCOPY.DG   5
+	RL1   .BH   2            DHKLCD.DG   8            BUILD .SV  37
+	RLC   .BH   2            DHLAAB.DG  13
 
-	RLC   .BH   2            DHLAAB.DG  13            BUILD .SV  37
-
-	 159 Files in 2810 Blocks -  382 Free blocks
+	 158 FILES IN 2799 BLOCKS -  393 FREE BLOCKS
 
 	.
 
@@ -329,7 +341,7 @@ Since you now have a fully-functional system, try out some programs.
 BASIC works fine once you copy it to the SYS: partition. Again, you'll 
 need to delete some files from SYS: if you want to copy some programs 
 over. Try re-running the server with `-2 ../disks/diag-games-kermit.rk05` 
-on the end to use the SD2 and SD3 partitions. This will allow systems
+on the end to use the SDA1 and SDB1 partitions. This will allow systems
 (with enough memory) to play with MUSIC.SV, Adventure, etc. Note: you do 
 not have to halt the PDP-8 to swap out disks. Just make sure no data is 
 being transacted at the time you halt the server, and make sure the SYS: 
