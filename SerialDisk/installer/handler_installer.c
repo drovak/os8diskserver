@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 	while (handler_buf[i] == 0200)
 		i++;
 	printf("Position after leader: %04o\n", i);
-	i += 2; //skip past origin
+	i += 4; //skip past origin
 	count = -decode_word(handler_buf, i) & 07777;
 	printf("Number of devices: %d\n", count);
 	count *= 16; //count number of device entries
