@@ -2,118 +2,153 @@
    2               
    3               /       SERIAL INTERFACE-BASED DISK SYSTEM DEVICE HANDLER [USE WITH PC SERVER].
    4               
-   5               /       LAST EDIT: 06-AUG-2016 CJL
+   5               /       LAST EDIT: 19-NOV-2016 CJL
    6               
    7               /       EDIT HISTORY.
    8               
-   9               /       06-AUG-2016     CHARLES LASNER  CODE CLEANUP.
+   9               /       19-NOV-2016     CHARLES LASNER  BUG FIX AND OTHER THINGS.
   10               
   11               /       NOTABLE CHANGES.
   12               
-  13               /       1) ADDS THIS EDIT HISTORY.
+  13               /       1) FIXED BUG ASSOCIATED WITH PRE-OMNIBUS SERIAL INTERFACES.
   14               
-  15               /       2) REMOVES MINOR INCOMPATIBLE SOURCE CODE QUIRKS.  [NOTE: ALL CHANGES MADE
-  16               /          ARE COSMETIC, BUT TECHNICALLY VIOLATE THE PAL LANGUAGE SPECIFICATION.  OS/8
-  17               /          PAL8 IS DEFICIENT AT FLAGGING CERTAIN ERRORS THAT WILL BE PROPERLY DETECTED
-  18               /          BY OTHER ASSEMBLY PROGRAMS SUCH AS PAL III, P?S/8 PAL, THE LAP6-DIAL/DIAL-MS
-  19               /          ASSEMBLER AND TOPS1O PAL10.]
-  20               
-  21               /       3) REMOVES INCOMPATIBILITY WITH LANGUAGE EXTENSIONS FOUND IN OTHER ASSEMBLERS
-  22               /          [SUCH AS THE ERROR DIRECTIVE].
-  23               
-  24               /       4) REMOVAL OF CONTROL-C DETECTION.  THIS IS A DESIGN FLAW: WHEN CONTROL-C IS
-  25               /          DETECTED, THE KEYBOARD INPUT FLAG IS LEFT SET [WHICH IS THE PROPER ACTION
-  26               /          PER SE].  THE SYSTEM HANDLER WILL BE IMMEDIATELY ENTERED AT 07600 WITH A
-  27               /          CALL TO WRITE OUT A PORTION OF MEMORY TO THE SYSTEM SCRATCH BLOCKS; WHILE
-  28               /          THE KEYBOARD FLAG IS NOT CHECKED DURING THE WRITE OPERATION, THE FLAG IS
-  29               /          STILL SET.  THE NEXT INTERNAL CALL TO THE SYSTEM DEVICE HANDLER IS AN
-  30               /          ATTEMPT TO RELOAD THE KEYBOARD MONITOR [WHICH WOULD DISPOSE OF THE KEYBOARD
-  31               /          FLAG BY VARIOUS APPROPRIATE MEANS AFTER CLEARING THE FLAG]; HOWEVER, SINCE
-  32               /          THIS LATEST CALL IS A READ OPERATION, THE KEYBOARD FLAG IS DETECTED CAUSING
-  33               /          ANOTHER REBOOT TO 07600.  THUS, THE KEYBOARD FLAG IS NEVER CLEARED AS THE
-  34               /          CODE THAT IS DESIGNED TO HANDLE IT NEVER GAINS CONTROL; THIS RESULTS IN AN
-  35               /          INFINITE LOOP SITUATION.  [NOTE: NO OFFICIAL DEC OS/8 SYSTEM HANDLERS CHECK
-  36               /          FOR CONTROL-C; THIS FUNCTION IS AN OPTION FOR NON-SYSTEM HANDLERS ONLY.]
-  37               
-  38               /       5) DEVICE GROUP NAMES MODIFIED FOR CONSISTENCY WITH THE NON-SYSTEM HANDLERS.
+  15               /       2) REMOVED LAST REMNANTS OF CONTROL-C CHECKING CODE ALREADY DEACTIVATED.
+  16               
+  17               /       3) THE EMBEDDED MANUAL BOOTSTRAP CODE IS NOW ONE SHORTER; A WORD THAT IS
+  18               /          MERELY READ IN BY RUNNING THE BOOTSTRAP WAS INCLUDED WITHIN THE BOOTSTRAP.
+  19               
+  20               /       4) THE LONG AWAITED MAJOR SOURCE CODE CLEANUP TO INCLUDE [BETTER] COMMENTS AND
+  21               /          CONFORMANCE WITH PDP-8 SOURCE CODE CONVENTIONS.
+  22               
+  23               /       5) RELEASE UPDATED TO VERSION G.
+  24               
+  25               /       06-AUG-2016     CHARLES LASNER  CODE CLEANUP.
+  26               
+  27               /       NOTABLE CHANGES.
+  28               
+  29               /       1) ADDS THIS EDIT HISTORY.
+  30               
+  31               /       2) REMOVES MINOR INCOMPATIBLE SOURCE CODE QUIRKS.  [NOTE: ALL CHANGES MADE
+  32               /          ARE COSMETIC, BUT TECHNICALLY VIOLATE THE PAL LANGUAGE SPECIFICATION.  OS/8
+  33               /          PAL8 IS DEFICIENT AT FLAGGING CERTAIN ERRORS THAT WILL BE PROPERLY DETECTED
+  34               /          BY OTHER ASSEMBLY PROGRAMS SUCH AS PAL III, P?S/8 PAL, THE LAP6-DIAL/DIAL-MS
+  35               /          ASSEMBLER AND TOPS1O PAL10.]
+  36               
+  37               /       3) REMOVES INCOMPATIBILITY WITH LANGUAGE EXTENSIONS FOUND IN OTHER ASSEMBLERS
+  38               /          [SUCH AS THE ERROR DIRECTIVE].
   39               
-  40               /       6) MAJOR SOURCE CODE CLEANUP DEFERRED PENDING TESTING OF THE PROGRAM.  [NOTE:
-  41               /          AMONG OTHER PROBLEMS, THE SOURCE CODE APPEARS TO BE A RECOVERY FROM A
-  42               /          LISTING FILE AND DOES NOT CONFORM TO PDP-8 SOURCE CODE STANDARDS; OTHER THAN
-  43               /          MORE RECENT MINOR EDITS, THERE ARE NO HORIZONTAL TAB CHARACTERS.]
-  44               
-  45               /       7) RELEASE UPDATED TO VERSION F.
-  46               
-  47               /       16-NOV-2015     BOB ADAMSON     FIRST MAJOR UPDATE.
-  48               
-  49               /       NOTE: THIS RELEASE DATE IS APPROXIMATE.  IT IS MORE LIKELY AN EARLY DATE IN A
-  50               /       PERIOD THAT SPANS SEVERAL MONTHS.
-  51               
-  52               /       NOTABLE CHANGES:
-  53               
-  54               /       1) REMOVES REDUNDANT CDF INSTRUCTIONS TO SHORTEN THE CODE.
-  55               
-  56               /       2) REPLACES BSW INSTRUCTIONS WITH THREE ROTATE INSTRUCTIONS EACH TO MAINTAIN
-  57               /          COMPATIBILITY WITH ALL "FAMILY OF 8" MACHINES INSTEAD OF OMNIBUS AND NEWER.
-  58               
-  59               /       3) DISABLES INTERRUPTS FROM WITHIN THE HANDLER.
-  60               
-  61               /       4) ADDS CONTROL-C CHECKING TO ABORT TO OS/8 KEYBOARD MONITOR.
-  62               
-  63               /       5) LIMITS CONTROL-C CHECKING TO READ OPERATIONS ONLY TO PREVENT THE SERVER
-  64               /          FROM HANGING.
-  65               
-  66               /       6) RELEASE UPDATED TO VERSION E.
-  67               
-  68               /       17-FEB-2014     KYLE OWEN       INITIAL RELEASE AND UPDATES.
-  69               
-  70               /       NOTABLE FEATURES:
-  71               
-  72               /       1) RUNS ON OMNIBUS MACHINES ONLY.
+  40               /       4) REMOVAL OF CONTROL-C DETECTION.  THIS IS A DESIGN FLAW: WHEN CONTROL-C IS
+  41               /          DETECTED, THE KEYBOARD INPUT FLAG IS LEFT SET [WHICH IS THE PROPER ACTION
+  42               /          PER SE].  THE SYSTEM HANDLER WILL BE IMMEDIATELY ENTERED AT 07600 WITH A
+  43               /          CALL TO WRITE OUT A PORTION OF MEMORY TO THE SYSTEM SCRATCH BLOCKS; WHILE
+  44               /          THE KEYBOARD FLAG IS NOT CHECKED DURING THE WRITE OPERATION, THE FLAG IS
+  45               /          STILL SET.  THE NEXT INTERNAL CALL TO THE SYSTEM DEVICE HANDLER IS AN
+  46               /          ATTEMPT TO RELOAD THE KEYBOARD MONITOR [WHICH WOULD DISPOSE OF THE KEYBOARD
+  47               /          FLAG BY VARIOUS APPROPRIATE MEANS AFTER CLEARING THE FLAG]; HOWEVER, SINCE
+  48               /          THIS LATEST CALL IS A READ OPERATION, THE KEYBOARD FLAG IS DETECTED CAUSING
+  49               /          ANOTHER REBOOT TO 07600.  THUS, THE KEYBOARD FLAG IS NEVER CLEARED AS THE
+  50               /          CODE THAT IS DESIGNED TO HANDLE IT NEVER GAINS CONTROL; THIS RESULTS IN AN
+  51               /          INFINITE LOOP SITUATION.  [NOTE: NO OFFICIAL DEC OS/8 SYSTEM HANDLERS CHECK
+  52               /          FOR CONTROL-C; THIS FUNCTION IS AN OPTION FOR NON-SYSTEM HANDLERS ONLY.]
+  53               /      5) DEVICE GROUP NAMES MODIFIED FOR CONSISTENCY WITH THE NON-SYSTEM HANDLERS.
+  54               
+  55               /       6) MAJOR SOURCE CODE CLEANUP DEFERRED PENDING TESTING OF THE PROGRAM.  [NOTE:
+  56               /          AMONG OTHER PROBLEMS, THE SOURCE CODE APPEARS TO BE A RECOVERY FROM A
+  57               /          LISTING FILE AND DOES NOT CONFORM TO PDP-8 SOURCE CODE STANDARDS; OTHER
+  58               /          THAN MORE RECENT MINOR EDITS, THERE ARE NO HORIZONTAL TAB CHARACTERS.]
+  59               
+  60               /       7) RELEASE UPDATED TO VERSION F.
+  61               
+  62               /       16-NOV-2015     BOB ADAMSON     FIRST MAJOR UPDATE.
+  63               
+  64               /       NOTE: THIS RELEASE DATE IS APPROXIMATE.  IT IS MORE LIKELY AN EARLY DATE IN A
+  65               /       PERIOD THAT SPANS SEVERAL MONTHS.
+  66               
+  67               /       NOTABLE CHANGES:
+  68               
+  69               /       1) REMOVES REDUNDANT CDF INSTRUCTIONS TO SHORTEN THE CODE.
+  70               
+  71               /       2) REPLACES BSW INSTRUCTIONS WITH THREE ROTATE INSTRUCTIONS EACH TO MAINTAIN
+  72               /          COMPATIBILITY WITH ALL "FAMILY OF 8" MACHINES INSTEAD OF OMNIBUS AND NEWER.
   73               
-  74               /       2) HANDLER RELEASED AT VERSION D.
+  74               /       3) DISABLES INTERRUPTS FROM WITHIN THE HANDLER.
   75               
-  76               /       3) INCLUDES CO-RESIDENT HANDLER FOR SDB0:.
+  76               /       4) ADDS CONTROL-C CHECKING TO ABORT TO OS/8 KEYBOARD MONITOR.
   77               
-  78               /       4) INCLUDES CO-RESIDENT HANDLER DUMMY FOR SDA0: [SAME AS SYS].
-  79               
-  80               /       NOTE: AS ALSO APPLIES TO THE OS/8 RK8E SYSTEM HANDLER, THE CO-RESIDENT ENTRY
-  81               /       POINTS ONLY FUNCTION AS DESCRIBED IF THE SYSTEM IS BOOTED TO DRIVE UNIT 0.
-  82               /       PRESENTLY, THIS RESTRICTION IS SUPERFLUOUS TO THE SERIAL DISK SYSTEM HANDLER
-  83               /       AS NO EXTENDED DISK BOOTUP IS CURRENTLY SUPPORTED; HOWEVER, THE RESTRICTIONS
-  84               /       SHOULD BE DOCUMENTED SHOULD FUTURE RELEASES SUPPORT ADDITIONAL BOOTUP DRIVES.
-  85               
-  86               VERS="F&77
-  87               
-  88               BASER=6400                      /USING DEVICE CODES 40,41
-  89               BASET=6410
+  78               /       5) LIMITS CONTROL-C CHECKING TO READ OPERATIONS ONLY TO PREVENT THE SERVER
+  79               /          FROM HANGING.
+  80               
+  81               /       6) RELEASE UPDATED TO VERSION E.
+  82               
+  83               /       17-FEB-2014     KYLE OWEN       INITIAL RELEASE AND UPDATES.
+  84               
+  85               /       NOTABLE FEATURES:
+  86               
+  87               /       1) RUNS ON OMNIBUS MACHINES ONLY.
+  88               
+  89               /       2) HANDLER RELEASED AT VERSION D.
   90               
-  91               SKCF=BASER
-  92               SKSF=BASER+1
-  93               SKCC=BASER+2
-  94               SKRS=BASER+4
-  95               SKIE=BASER+5
-  96               SKRB=BASER+6
-  97               
-  98               STFL=BASET
-  99               STSF=BASET+1
- 100               STCF=BASET+2
- 101               STPC=BASET+4
- 102               STSK=BASET+5
- 103               STLS=BASET+6
- 104               
- 105               BLKNUM=6260
- 106               
- 107               /       HANDLER SENDS:
- 108               
- 109               /       A OR B -        COMMAND SERVER, SIDE 0 OR 1
- 110               /       <ATSIGN> -      SEND BOOT CODE
- 111               
- 112                       *0
- 113               
- 114 000000  7775          -3              /THREE DEVICES (SYSTEM PLUS 2 LOGICAL DISKS)
+  91               /       3) INCLUDES CO-RESIDENT HANDLER FOR SDB0:.
+  92               
+  93               /       4) INCLUDES CO-RESIDENT HANDLER DUMMY FOR SDA0: [SAME AS SYS].
+  94               
+  95               /       NOTE: AS ALSO APPLIES TO THE OS/8 RK8E SYSTEM HANDLER, THE CO-RESIDENT ENTRY
+  96               /       POINTS ONLY FUNCTION AS DESCRIBED IF THE SYSTEM IS BOOTED TO DRIVE UNIT 0.
+  97               /       PRESENTLY, THIS RESTRICTION IS IRRELEVANT TO THE SERIAL DISK SYSTEM HANDLER AS
+  98               /       NO EXTENDED DISK BOOTUP IS CURRENTLY SUPPORTED; HOWEVER, THE RESTRICTIONS
+  99               /       SHOULD BE DOCUMENTED SHOULD FUTURE RELEASES SUPPORT ADDITIONAL BOOTUP DRIVES.
+ 100               /      NUMERIC LOAD DEFINITIONS.
+ 101               
+ 102                       NL7777= CLA CMA                 /LOAD AC WITH 7777.
+ 103               
+ 104               /       MISCELLANEOUS DEFINITIONS.
+ 105               
+ 106                       BLKNUM= 6260                    /COUNT OF OS/8 RECORDS PER LOGICAL DEVICE.
+ 107                       DEVCNT= 3                       /THREE LOGICAL DEVICES SUPPORTED.
+ 108                       SBOOT=  7600                    /STANDARD SYSTEM RESTART ADDRESS.
+ 109                       VERS=   "G&77                   /RELEASE VERSION.
+ 110               
+ 111               /       REMOTE LINE IOT DEFINITIONS.
+ 112               
+ 113                       REC=    40                      /DEVICE 40 FOR REMOTE RECEIVE.
+ 114                       SEN=    41                      /DEVICE CODE 41 FOR REMOTE SEND.
  115               
- 116 000001  2304          DEVICE SDSY; DEVICE SYS ; 4640; ENTRY1&177+2000; 0; BLKNUM
+ 116               /       NOTE: DEFINITIONS THAT END WITH ^^^^ IN THE COMMENTS ARE FOR OMNIBUS OR NEWER
+ 117               /       MACHINES ONLY; EXECUTION MAY PRODUCE UNEXPECTED RESULTS!
+ 118               
+ 119               /       RECEIVE DEFINITIONS.
+ 120               
+ 121                       RKCC=   REC^10+6002             /CLEAR AC, RECEIVE FLAG.
+ 122                       RKCF=   REC^10+6000             /CLEAR RECEIVE FLAG ONLY.                  ^^^^
+ 123                       RKIE=   REC^10+6005             /LOAD INTERRUPT ENABLE PER AC[11].         ^^^^
+ 124                       RKRB=   REC^10+6006             /LOAD RECEIVE DATA -> AC, CLEAR RECEIVE FLAG.
+ 125                       RKRS=   REC^10+6004             /LOAD RECEIVE DATA .OR. AC -> AC.
+ 126                       RKSF=   REC^10+6001             /SKIP IF RECEIVE FLAG SET.
+ 127               
+ 128               /       TRANSMIT DEFINITIONS.
+ 129               
+ 130                       RSBIOT= SEN^10+6003             /SET BAUD RATE FROM AC[8-11].              ^^^^
+ 131                       RTCF=   SEN^10+6002             /CLEAR TRANSMIT FLAG.
+ 132                       RTFL=   SEN^10+6000             /SET TRANSMIT FLAG.                        ^^^^
+ 133                       RTLS=   SEN^10+6006             /SEND TRANSMIT CHARACTER, CLEAR FLAG.
+ 134                       RTPC=   SEN^10+6004             /SEND TRANSMIT CHARACTER.
+ 135                       RTSF=   SEN^10+6001             /SKIP ON TRANSMIT FLAG SET.
+ 136                       RTSK=   SEN^10+6005             /SKIP IF TRANSIT FLAG OR RECEIVE FLAG SET. ^^^^
+ 137               
+ 138               /       TO DIFFERENTIATE BETWEEN LOGICAL DISK REGIONS, THE HANDLER SENDS AN
+ 139               /       INITIATING CHARACTER:
+ 140               
+ 141               /       ASCII TEXT CHARACTER    DISK REGION
+ 142               
+ 143               /               A               DISK 0 FIRST HALF.
+ 144               /               B               DISK 0 SECOND HALF.
+ 145               
+ 146               /               <ATSIGN>        SEND BOOT CODE BY SPECIAL PROTOCOL.
+ 147                      *0                              /HANDLER BLOCK STARTS HERE.
+ 148               
+ 149 000000  7775          -DEVCNT                         /DEVICE HANDLER COUNT.
+ 150               
+ 151 000001  2304          DEVICE  SDSY;DEVICE  SYS; 4640;SYSENT&177+2000;0;BLKNUM
      000002  2331  
      000003  2331  
      000004  2300  
@@ -121,7 +156,7 @@
      000006  2007  
      000007  0000  
      000010  6260  
- 117 000011  2304          DEVICE SDSY; DEVICE SDA0; 4640; ENTRY1&177+1000; 0; BLKNUM
+ 152 000011  2304          DEVICE  SDSY;DEVICE  SDA0;4640;SYSENT&177+1000;0;BLKNUM
      000012  2331  
      000013  2304  
      000014  0160  
@@ -129,220 +164,258 @@
      000016  1007  
      000017  0000  
      000020  6260  
- 118 000021  2304          DEVICE SDSY; DEVICE SDB0; 4640; ENTRY2&177+1000; 0; BLKNUM
+ 153 000021  2304          DEVICE  SDSY;DEVICE  SDB0;4640;ENTRY2&177+1000;0;BLKNUM
      000022  2331  
      000023  2304  
      000024  0260  
      000025  4640  
-     000026  1066  
+     000026  1061  
      000027  0000  
      000030  6260  
- 119               
- 120 000031  7732          BOOT-ENDB               /BOOT CODE LENGTH [NEGATED].
- 121               
- 122                       RELOC 0
- 123               
- 124 000000* 7200  BOOT,   CLA                     /CLEAN UP NOW.
- 125 000001* 1413          TAD I BOOTX1    /COPY FROM 00200-00400 TO 07600-00000
- 126 000002* 3414          DCA I BOOTX2
- 127 000003* 1415          TAD I BOOTX3    /COPY FROM 00047-00247 TO 17647-10047
- 128 000004* 6211          CDF 10
- 129 000005* 3416          DCA I BOOTX4
- 130 000006* 6201          CDF 0
- 131 000007* 1014          TAD BOOTX2
- 132 000010* 7640          SZA CLA         /DONE?
- 133 000011* 5001          JMP BOOT+1              /NO, KEEP COPYING
- 134 000012* 5444          JMP I   B7605/(SBOOT+5) /JUMP TO OS/8
- 135               
- 136 000013* 0177  BOOTX1, 177
- 137 000014* 7577  BOOTX2, 7577
- 138 000015* 0046  BOOTX3, 46
- 139 000016* 7646  BOOTX4, 7646
- 140 000017* 0017  ADDR,   17
- 141                       ZBLOCK 20-.
- 142 000020* 7240          CLA CMA         /AC=7777
- 143 000021* 3017          DCA ADDR        /SET UP ADDRESS
- 144 000022* 1045          TAD BOOTMS      /SEND BOOT MESSAGE TO SERVER
- 145 000023* 6416          STLS
- 146 000024* 6411          STSF
- 147 000025* 5024          JMP .-1
- 148 000026* 6402  RDLP,   SKCC            /CLEAR AC AND FLAG
- 149 000027* 6401          SKSF            /SKIP IF FLAG SET
- 150 000030* 5027          JMP .-1
- 151 000031* 6406          SKRB            /READ BUFFER
- 152 000032* 7106          CLL RTL         /ROTATE 6 LEFT
- 153 000033* 7006          RTL
- 154 000034* 7510          SPA             /CHANNEL 8 PUNCHED?
- 155 000035* 5000          JMP BOOT        /YES, CONTINUE BOOTING
- 156 000036* 7006          RTL
- 157 000037* 6401          SKSF            /SKIP IF FLAG SET
- 158 000040* 5037          JMP .-1
- 159 000041* 6404          SKRS            /OR BUFFER WITH AC
- 160 000042* 3417          DCA I ADDR      /STORE CONTENTS
- 161 000043* 5026          JMP RDLP        /KEEP LOOPING
+ 154               
+ 155 000031  7732          BOOT-ENDB                       /BOOT CODE LENGTH [NEGATED].
+ 156               
+ 157                       RELOC   0                       /WHERE THIS LOADS.
+ 158               
+ 159               /       WHEN CONTROL IS TRANSFERRED HERE, THE SYSTEM DEVICE HANDLER IS IN 00200-00377
+ 160               /       AND THE CODE TO BE LOADED INTO 17647-17777 IS IN 00047-0177.  WE CAN BE
+ 161               /       SLOPPY AND COPY A FEW EXTRA WORDS PAST WHAT IS NEEDED [WASTES A FEW MS.].
  162               
- 163 000044* 7605  B7605,  7605            /ADDRESS OF OS/8 ENTRY
- 164 000045* 0100  BOOTMS, 100             /<AT-SIGN> COMMAND TO SERVER
- 165               ENDB,   RELOC
- 166               
- 167                       *200
- 168                       RELOC 7600
- 169 007600* 0000          ZBLOCK 7
+ 163 000000* 7200  BOOT,   CLA                             /CLEAN UP.
+ 164 000001* 1413          TAD I   BTXR13                  /GET A WORD FROM 0200 AND ONWARD.
+ 165 000002* 3414          DCA I   BTXR14                  /STORE INTO 07600 AND ONWARD.
+ 166 000003* 1415          TAD I   BTXR15                  /GET A WORD FROM 0047 AND ONWARD.
+ 167 000004* 6211          CDF     10                      /STORING INTO FIELD 1.
+ 168 000005* 3416          DCA I   BTXR16                  /STORE INTO 17647 AND ONWARD.
+ 169 000006* 6201          CDF     00                      /BACK TO FIELD 0.
+ 170 000007* 1014          TAD     BTXR14                  /GET HANDLER CODE POINTER.
+ 171 000010* 7640          SZA CLA                         /SKIP IF WE WENT TOO FAR.
+ 172 000011* 5001          JMP     BOOT+1                  /GO BACK AND DO MORE.
+ 173 000012* 5445          JMP I   B7605/(SBOOT+5)         /DONE, GO START UP OS/8.
+ 174               /      AUTO-INDEX REGISTERS; ALL MUST BE IN THE RANGE OF 0013-0017.
+ 175               
+ 176                       IFNZRO  13-.    <ERROR  .>      /POINTERS ASSEMBLED WRONG IF THIS HAPPENS.
+ 177               
+ 178 000013* 0177  BTXR13, 0200-1                          /CURRENT POINTER TO SYSTEM HANDLER CODE.
+ 179 000014* 7577  BTXR14, SBOOT-1                         /WHERE SYSTEM HANDLER CODE MUST GO.
+ 180 000015* 0046  BTXR15, 47-1                            /CURRENT POINTER TO FIELD 1 CODE [IN FIELD 0].
+ 181 000016* 7646  BTXR16, 7647-1                          /WHERE THE FIELD 1 CODE MUST GO.
+ 182 000017* 0017  STXR17, .                               /BOOTUP STORE POINTER; MUST POINT TO ITSELF.
+ 183               
+ 184                       ZBLOCK  20-.                    /EMPTY SPACE [IF ANY].
+ 185               
+ 186               /       WHAT FOLLOWS IS ACTUALLY THE BOOTUP CODE [BUT ALSO EMBEDDED HERE].
+ 187               
+ 188 000020* 7240  BUTUP,  NL7777                          /SET AC TO 0000 LESS AUTO-INDEX BACKUP FACTOR.
+ 189 000021* 3017          DCA     STXR17                  /STASH THE POINTER.
+ 190 000022* 1044          TAD     BOOTMSG/(100)           /SETUP SERVER COMMAND BOOT VALUE.
+ 191 000023* 6416          RTLS                            /SEND IT.
+ 192 000024* 6411          RTSF                            /DONE YET?
+ 193 000025* 5024          JMP     .-1                     /NO, WAIT FOR IT.
+ 194 000026* 6402  BTLP,   RKCC                            /CLEAR THE FLAG AND THE AC.
+ 195 000027* 6401          RKSF                            /FLAG UP?
+ 196 000030* 5027          JMP     .-1                     /NO, WAIT FOR IT.
+ 197 000031* 6406          RKRB                            /YES, READ IN THE FIRST CHARACTER.
+ 198 000032* 7106          CLL RTL;RTL                     /MOVE UP.
+     000033* 7006  
+ 199 000034* 7510          SPA                             /SKIP IF NOT END OF DATA.
+ 200 000035* 5000          JMP     BOOT                    /ALL DATA IN, NOW GO START IT UP.
+ 201 000036* 7006          RTL                             /NO HAVE FIRST HALF IN HIGH-ORDER.
+ 202 000037* 6401          RKSF                            /FLAG UP?
+ 203 000040* 5037          JMP     .-1                     /NO, WAIT FOR IT.
+ 204 000041* 6404          RKRS                            /.OR. IN THE LOW-ORDER HALF.
+ 205 000042* 3417          DCA I   STXR17                  /STORE THE LATEST WORD.
+ 206 000043* 5026          JMP     BTLP                    /KEEP GOING.
+ 207               
+ 208 000044* 0100  BOOTMS, "A&177-1                        /BOOTUP CHARACTER.
+ 209               
+ 210               /       THE STANDALONE BOOTSTRAP IS ALL WORDS FROM 0020 THROUGH HERE.
+ 211               
+ 212                       ENDBUT= .                       /END OF MANUAL BOOTSTRAP.
+ 213               
+ 214 000045* 7605  B7605,  SBOOT+5                         /WHERE OS/8 STARTS WITHOUT WRITING.
+ 215               
+ 216                       ENDB=   .                       /END OF BOOT CODE.
+ 217               
+ 218                       RELOC                           /TURN OFF RELOCATION FOR NOW.
+ 219                      *200                            /THIS IS WHERE THE SYSTEM HANDLER LOADS.
+ 220               
+ 221                       RELOC   SBOOT                   /THIS IS WHERE IT EXECUTES.
+ 222               
+ 223 007600* 0000          ZBLOCK  SBOOT+7-.               /BUILD WILL FILL THIS IN.
      007601* 0000  
      007602* 0000  
      007603* 0000  
      007604* 0000  
      007605* 0000  
      007606* 0000  
- 170 007607* 0006  ENTRY1, VERS
- 171 007610* 7300          CLA CLL         /CLEAR LINK FOR FIRST PLATTER
- 172 007611* 1342  SETUP,  TAD WKUP        /ADD WAKEUP CHARACTER
- 173 007612* 4274          JMS SENDC       /SEND WAKEUP CHARACTER
- 174 007613* 7200          CLA
- 175 007614* 6405          SKIE            /NO INTERRUPTS FROM THIS CONSOLE
- 176 007615* 6214          RDF             /GET CURRENT FIELD
- 177 007616* 1261          TAD SCDI        /ADD CDI
- 178 007617* 3335          DCA SFIELD      /DEPOSIT MODIFIED CIF
- 179 007620* 1607          TAD I ENTRY1    /GET FUNCTION
- 180 007621* 4301          JMS SNDNUM      /TELL SERVER FUNCTION
- 181 007622* 2207          ISZ ENTRY1      /LOOK AT BUFFER ADDRESS
- 182 007623* 1607          TAD I ENTRY1    /GET BUFFER ADDRESS
- 183 007624* 4301          JMS SNDNUM      /TELL SERVER BUFFER ADDRESS
- 184 007625* 1607          TAD I ENTRY1    /GET BUFFER ADDRESS
- 185 007626* 3266          DCA SLOC        /STORE BUFFER ADDRESS
- 186 007627* 2207          ISZ ENTRY1      /LOOK AT STARTING BLOCK NUMBER
- 187 007630* 1607          TAD I ENTRY1    /GET STARTING BLOCK NUMBER
- 188 007631* 4301          JMS SNDNUM      /TELL SERVER STARTING BLOCK NUMBER
- 189 007632* 2207          ISZ ENTRY1      /LOOK AT ERROR RETURN
- 190 007633* 4311          JMS GETNUM      /RECEIVE CDF INSTRUCTION
- 191 007634* 3235          DCA .+1         /SAVE AND THEN EXECUTE THE CDF
- 192 007635* 7402          HLT             /BECOMES CDF TO XFER FIELD
- 193 007636* 4311          JMS GETNUM      /RECEIVE NEGATIVE WORD COUNT
- 194 007637* 3341          DCA WORDCT
- 195 007640* 4311  GETACK, JMS GETNUM      /4000=READ, 4001=WRITE, 0000=DONE, 2000=ERROR
- 196 007641* 7450          SNA             /WAS IT ZERO?
- 197 007642* 5334          JMP EXIT        /YES, EXIT
- 198 007643* 7104          CLL RAL         /NO, IS HIGH BIT SET?
- 199 007644* 7420          SNL
- 200 007645* 5337          JMP SYSERR       /NO, ERROR!
- 201 007646* 7640          SZA CLA         /YES, READ OR WRITE?
- 202 007647* 5325          JMP TXLP        /TIME TO WRITE
- 203               
- 204 007650* 4311  RXLP,   JMS GETNUM      /GET WORD
- 205 007651* 3666          DCA I SLOC      /STORE CONTENTS
- 206 007652* 2266          ISZ SLOC        /NEXT LOCATION
- 207 007653* 6031          KSF             /WE WILL CHECK FOR A ^C
- 208 007654* 5263          JMP RXLP1       /NO KEY PRESSED (OR ISZ SKIPPED HERE)
- 209 007655* 6034          KRS             /IF HE'S TYPED READ THE KEY
- 210 007656* 1343          TAD M203        /^C IS (USUALLY) CODE 203
- 211 007657* 7200          CLA/SZA CLA         /WAS IT?
- 212 007660* 5263          JMP RXLP1       /WASN'T A ^C
- 213 007661* 6203  SCDI,   CIF CDF 0
- 214 007662* 5707          JMP I S7600
- 215 007663* 2341  RXLP1,  ISZ WORDCT      /INCREMENT WORD COUNT...DONE?
- 216 007664* 5250          JMP RXLP        /NO, KEEP LOOPING
- 217 007665* 5240          JMP GETACK      /ANY OTHER REQUESTS?
- 218               
- 219               SLOC,                   /REUSE THIS LOCATION
- 220 007666* 0006  ENTRY2, VERS            /SECOND ENTRY POINT
- 221 007667* 7200          CLA
- 222 007670* 1266          TAD ENTRY2      /GET ARGUMENT ADDRESS
- 223 007671* 3207          DCA ENTRY1      /STORE IT IN COMMON PLACE
- 224 007672* 7301          CLA CLL IAC     /SET AC = 1 FOR 2ND PLATTER
- 225 007673* 5211          JMP SETUP       /CONTINUE WITH SETUP
+ 224               
+ 225               /       THIS IS THE ENTRY FOR THE SYSTEM DEVICE [AND THE CO-RESIDENT SDA0: HANDLER].
  226               
- 227 007674* 0000  SENDC,  0               /SEND CHARACTER IN AC
- 228 007675* 6416          STLS
- 229 007676* 6411          STSF
- 230 007677* 5276          JMP .-1
- 231 007700* 5674          JMP I SENDC
- 232                       
- 233 007701* 0000  SNDNUM, 0               /SEND NUMBER AS TWO CONSECUTIVE CHARACTERS
- 234 007702* 4274          JMS SENDC       /SEND BOTTOM 8 BITS OF WORD
- 235 007703* 7012          RTR             /NO BSW HERE TO SUIT 8/I ETC
- 236 007704* 7012          RTR             /SHIFT TOP BITS DOWN 6
- 237 007705* 7012          RTR
- 238 007706* 4274          JMS SENDC       /SEND TOP 4 BITS PLUS SOME - LET SERVER HANDLE IT
- 239 007707* 7600  S7600,  7600            /=CLA, ALSO OS/8 ENTRY POINT
- 240 007710* 5701          JMP I SNDNUM
- 241               
- 242 007711* 0000  GETNUM, 0
- 243 007712* 6402          SKCC            /CLEAR AC AND FLAG
- 244 007713* 6401          SKSF            /SKIP IF FLAG SET
- 245 007714* 5313          JMP .-1
- 246 007715* 6406          SKRB            /READ BUFFER WHICH IS FIRST SIXBIT
- 247 007716* 7106          CLL RTL         /SHIFT SIXBIT TO BITS 0-5
- 248 007717* 7006          RTL             /NO BSW TO SUIT 8/I ETC
- 249 007720* 7006          RTL
- 250 007721* 6401          SKSF            /SKIP IF FLAG SET
- 251 007722* 5321          JMP .-1         /WHICH WILL BE THE 2ND SIXBIT
- 252 007723* 6404          SKRS            /OR WITH AC TO GIVE 12 BIT WORD
- 253 007724* 5711          JMP I GETNUM
- 254               
- 255 007725* 1666  TXLP,   TAD I SLOC      /GET WORD
- 256 007726* 2266          ISZ SLOC        /NEXT LOCATION
- 257 007727* 7000          NOP
- 258 007730* 4301          JMS SNDNUM      /SEND IT
- 259 007731* 2341          ISZ WORDCT      /INCREMENT WORD COUNT...DONE?
- 260 007732* 5325          JMP TXLP        /NO, KEEP LOOPING
- 261 007733* 5240          JMP GETACK      /ANY MORE REQUESTS?
- 262               
- 263               
- 264 007734* 2207  EXIT,   ISZ ENTRY1      /NORMAL EXIT
- 265 007735* 7402  SFIELD, HLT             /MODIFIED TO CDI
- 266 007736* 5607          JMP I ENTRY1    /EXIT
- 267 007737* 7130  SYSERR, CLL CML RAR     /ROTATE ERROR CODE AND SET NEGATIVE BIT
- 268 007740* 5335          JMP SFIELD      /ERROR EXIT
- 269                       
- 270 007741* 0000  WORDCT, 0
- 271 007742* 0101  WKUP,   101
- 272 007743* 7575  M203,   -203            /^C IS CODE 203
- 273                       ZBLOCK 7744-.
- 274                       RELOC
- 275               $
+ 227 007607* 0007  SYSENT, VERS                            /ENTRY POINT; BUILD WANTS THE VERSION HERE.
+ 228 007610* 7300          CLA CLL                         /CLEAN UP.
+ 229 007611* 1220  SETUP1, TAD     WKUP/("A&177-1)         /GET [OR ADD] INITIAL DRIVE CHARACTER.
+ 230 007612* 4267          JMS     SENDC                   /TELL IT TO THE SERVER.
+ 231 007613* 7200          CLA                             /CLEAN UP
+ 232 007614* 6214          RDF                             /GET CALLER'S FIELD.
+ 233 007615* 1334          TAD     SCDI/(CIF CDF 00)       /TURN INTO "CIF CDF" TO CALLER'S FIELD.
+ 234 007616* 3330          DCA     SFIELD                  /STORE IN-LINE FOR RETURN LATER.
+ 235 007617* 6405          RKIE                            /CLEAR INTERRUPTS FROM THIS DEVICE.
+ 236 007620* 0101  WKUP,   "A&177                          /CONSTANT 0101; ALSO HARMLESS "AND" INSTRUCTION.
+ 237 007621* 7200          CLA                             /MAKE SURE AC IS CLEAR.
+ 238 007622* 1607          TAD I   SYSENT                  /GET THE FUNCTION WORD.
+ 239 007623* 4274          JMS     SNDNUM                  /SEND IT TO THE SERVER.
+ 240 007624* 2207          ISZ     SYSENT                  /BUMP PAST FUNCTION WORD.
+ 241 007625* 1607          TAD I   SYSENT                  /GET THE CALLER'S BUFFER ADDRESS.
+ 242 007626* 4274          JMS     SNDNUM                  /TELL IT TO THE SERVER [THIS COULD GO AWAY].
+ 243 007627* 1607          TAD I   SYSENT                  /GET THE CALLER'S BUFFER ADDRESS AGAIN.
+ 244 007630* 3261          DCA     SLOC                    /STORE FOR TRANSFERS LATER.
+ 245 007631* 2207          ISZ     SYSENT                  /BUMP TO RECORD ARGUMENT.
+ 246 007632* 1607          TAD I   SYSENT                  /GET THE STARTING RECORD NUMBER.
+ 247 007633* 4274          JMS     SNDNUM                  /SET TO SERVER.
+ 248 007634* 2207          ISZ     SYSENT                  /BUMP TO ERROR RETURN.
+ 249 007635* 4304          JMS     GETNUM                  /GET "CDF" TO BUFFER FIELD FROM SERVER.
+ 250 007636* 3237          DCA     .+1                     /STORE INLINE.
+ 251 007637* 7402          HLT                             /CHANGE DATA FIELD TO USER'S BUFFER FIELD.
+ 252 007640* 4304          JMS     GETNUM                  /GET NEGATED WORD COUNT FROM SERVER.
+ 253 007641* 3335          DCA     WORDCT                  /STASH IT.
+ 254 007642* 4304  GETACK, JMS     GETNUM                  /GET STATUS FROM SERVER.
+ 255 007643* 7450          SNA                             /ARE WE DONE? [0000 IS GOOD COMPLETION CODE.]
+ 256 007644* 5327          JMP     EXIT                    /YES, TAKE GOOD EXIT NOW.
+ 257 007645* 7104          CLL RAL                         /MOVE UP TO LINK AND AC[0].
+ 258 007646* 7420          SNL                             /SKIP IF READ OR WRITE.
+ 259 007647* 5332          JMP     SYSERR                  /JUMP IF THERE WAS AN ERROR [CODE 2000].
+ 260 007650* 7640          SZA CLA                         /SKIP IF READING [4000].
+ 261 007651* 5320          JMP     TXLP                    /JUMP IF WE ARE WRITING [4001].
+ 262               /      FALLS THROUGH IF READING.  GET THE DATA FROM THE SERVER AND STORE INTO THE
+ 263               /       USER'S BUFFER.
+ 264               
+ 265 007652* 4304  RXLP,   JMS     GETNUM                  /GET A WORD FROM THE SERVER.
+ 266 007653* 3661          DCA I   SLOC                    /PUT A WORD INTO THE BUFFER.
+ 267 007654* 2261          ISZ     SLOC                    /BUMP UP THE BUFFER POINTER.
+ 268 007655* 7000          NOP                             /IN CASE IT SKIPS.
+ 269 007656* 2335          ISZ     WORDCT                  /DONE ENOUGH WORDS?
+ 270 007657* 5252          JMP     RXLP                    /NO, KEEP GOING.
+ 271 007660* 5242          JMP     GETACK                  /GET THE FINAL STATUS BEFORE EXITING.
+ 272               
+ 273 007661* 0007  ENTRY2, VERS                            /ENTRY POINT FOR "B" SIDE.
+ 274               
+ 275                       SLOC=   .-1                     /ALSO USED AS STORAGE POINTER.
+ 276               
+ 277 007662* 7200          CLA                             /CLEAN UP.
+ 278 007663* 1261          TAD     ENTRY2                  /GET OUR CALLER.
+ 279 007664* 3207          DCA     SYSENT                  /MAKE IT THEIRS.
+ 280 007665* 7301          CLA CLL IAC                     /SET AC TO 1 FOR "B" SIDE OFFSET.
+ 281 007666* 5211          JMP     SETUP1                  /CONTINUE THERE.
+ 282               
+ 283 007667* 0000  SENDC,  .-.                             /TRANSMIT A CHARACTER ROUTINE.
+ 284 007670* 6416          RTLS                            /SEND THE CHARACTER IN THE AC.
+ 285 007671* 6411          RTSF                            /SEND FLAG UP?
+ 286 007672* 5271          JMP     .-1                     /NO, WAIT FOR IT.
+ 287 007673* 5667          JMP I   SENDC                   /YES, RETURN TO CALLER WITH AC INTACT.
+ 288               
+ 289 007674* 0000  SNDNUM, .-.                             /SEND C(AC) AS TWO CHARACTERS ROUTINE.
+ 290 007675* 4267          JMS     SENDC                   /SEND LOW-ORDER 8 BITS.
+ 291 007676* 7012          RTR;RTR;RTR                     /MOVE DOWN HIGH-ORDER BITS.
+     007677* 7012  
+     007700* 7012  
+ 292 007701* 4267          JMS     SENDC                   /SEND HIGH-ORDER BITS [AND SOME JUNK BITS].
+ 293 007702* 7200          CLA                             /CLEAN UP.
+ 294 007703* 5674          JMP I   SNDNUM                  /RETURN TO CALLER.
+ 295               
+ 296 007704* 0000  GETNUM, .-.                             /RECEIVE 12-BIT WORD IN TWO CHARACTERS ROUTINE.
+ 297 007705* 6402          RKCC                            /CLEAR THE RECEIVE FLAG, AC.
+ 298 007706* 6401          RKSF                            /RECEIVE FLAG UP?
+ 299 007707* 5306          JMP     .-1                     /NO, WAIT FOR IT.
+ 300 007710* 6406          RKRB                            /YES, READ IN FIRST SIXBIT CHARACTER.
+ 301 007711* 7106          CLL RTL;RTL;RTL                 /MOVE UP TO HIGH-ORDER BITS.
+     007712* 7006  
+     007713* 7006  
+ 302 007714* 6401          RKSF                            /RECEIVE FLAG UP?
+ 303 007715* 5314          JMP     .-1                     /NO, WAIT FOR IT.
+ 304 007716* 6404          RKRS                            /.OR. SECOND SIXBIT CHARACTER INTO AC.
+ 305 007717* 5704          JMP I   GETNUM                  /RETURN TO CALLER.
+ 306               /      COMES HERE IF WRITING.  GET THE DATA FROM THE USER'S BUFFER AND SEND IT TO THE
+ 307               /       SERVER.
+ 308               
+ 309 007720* 1661  TXLP,   TAD I   SLOC                    /GET A WORD FROM THE USER'S BUFFER.
+ 310 007721* 2261          ISZ     SLOC                    /BUMP TO NEXT LOCATION.
+ 311 007722* 7000          NOP                             /HERE IN CASE IT SKIPS.
+ 312 007723* 4274          JMS     SNDNUM                  /SEND THE WORD TO THE SERVER.
+ 313 007724* 2335          ISZ     WORDCT                  /DONE ENOUGH WORDS?
+ 314 007725* 5320          JMP     TXLP                    /NO, KEEP GOING.
+ 315 007726* 5242          JMP     GETACK                  /GET THE FINAL STATUS BEFORE EXITING.
+ 316               
+ 317               /       COMES HERE FOR SUCCESSFUL EXIT TO CALLER.
+ 318               
+ 319 007727* 2207  EXIT,   ISZ     SYSENT                  /BUMP TO NORMAL RETURN.
+ 320 007730* 7402  SFIELD, HLT                             /THIS WILL BE "CIF CDF" TO CALLER'S FIELD.
+ 321 007731* 5607          JMP I   SYSENT                  /TAKE GOOD RETURN TO CALLER.
+ 322               
+ 323               /       COMES HERE IF THERE WAS AN ERROR.
+ 324               
+ 325 007732* 7130  SYSERR, STL RAR                         /FORCE ERROR CONDITION AND MOVE DOWN STATUS BITS.
+ 326 007733* 5330          JMP     SFIELD                  /TAKE ERROR RETURN.
+ 327               
+ 328 007734* 6203  SCDI,   CIF CDF 00                      /CONSTANT 6203.
+ 329 007735* 0000  WORDCT, .-.                             /WORD COUNT FOR DATA TRANSFER.
+ 330               
+ 331 007736* 0000          ZBLOCK  7744-.                  /EMPTY SPACE.
+     007737* 0000  
+     007740* 0000  
+     007741* 0000  
+     007742* 0000  
+     007743* 0000  
+ 332               
+ 333                       RELOC                           /TURN OFF RELOCATION.
+ 334               
+ 335                       $                               /THAT'S ALL, FOLK!
 
-ADDR    0017
-B7605   0044
-BASER   6400
-BASET   6410
+B7605   0045
 BLKNUM  6260
 BOOT    0000
-BOOTMS  0045
-BOOTX1  0013
-BOOTX2  0014
-BOOTX3  0015
-BOOTX4  0016
+BOOTMS  0044
+BTLP    0026
+BTXR13  0013
+BTXR14  0014
+BTXR15  0015
+BTXR16  0016
+BUTUP   0020 unreferenced
+DEVCNT  0003
 ENDB    0046
-ENTRY1  7607
-ENTRY2  7666
-EXIT    7734
-GETACK  7640
-GETNUM  7711
-M203    7743
-RDLP    0026
-RXLP    7650
-RXLP1   7663
-S7600   7707
-SCDI    7661
-SENDC   7674
-SETUP   7611
-SFIELD  7735
-SKCC    6402
-SKCF    6400 unreferenced
-SKIE    6405
-SKRB    6406
-SKRS    6404
-SKSF    6401
-SLOC    7666
-SNDNUM  7701
-STCF    6412 unreferenced
-STFL    6410 unreferenced
-STLS    6416
-STPC    6414 unreferenced
-STSF    6411
-STSK    6415 unreferenced
-SYSERR  7737
-TXLP    7725
-VERS    0006
-WKUP    7742
-WORDCT  7741
+ENDBUT  0045 unreferenced
+ENTRY2  7661
+EXIT    7727
+GETACK  7642
+GETNUM  7704
+NL7777  7240
+REC     0040
+RKCC    6402
+RKCF    6400 unreferenced
+RKIE    6405
+RKRB    6406
+RKRS    6404
+RKSF    6401
+RSBIOT  6413 unreferenced
+RTCF    6412 unreferenced
+RTFL    6410 unreferenced
+RTLS    6416
+RTPC    6414 unreferenced
+RTSF    6411
+RTSK    6415 unreferenced
+RXLP    7652
+SBOOT   7600
+SCDI    7734
+SEN     0041
+SENDC   7667
+SETUP1  7611
+SFIELD  7730
+SLOC    7661
+SNDNUM  7674
+STXR17  0017
+SYSENT  7607
+SYSERR  7732
+TXLP    7720
+VERS    0007
+WKUP    7620
+WORDCT  7735
