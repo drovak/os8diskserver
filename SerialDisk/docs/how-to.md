@@ -69,7 +69,7 @@ Beware: this will modify the disk image, so make a backup if you need an
 original copy later on. Running the installation will print out some 
 debugging information. It should look something like this:
 
-	$ ./instlhndl ../handler/omnibus/system/sys_handler.bin ../disks/diagpack2.rk05 
+	$ ./instlhndl ../handler/sdsksy.bin ../disks/diagpack2.rk05 
 	Read 454 bytes of disk
 	Read 584 bytes of handler
 	Position after leader: 0360
