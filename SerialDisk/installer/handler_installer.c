@@ -15,6 +15,7 @@ unsigned char disk_buf[454];
 int i;
 int count;
 int start_btldr;
+int length_btldr;
 int start_handler;
 
 void bin_to_djg(char* buf_in, char* buf_out, int pos_in, int pos_out, int count);
@@ -48,35 +49,66 @@ int main(int argc, char* argv[])
 
 	printf("Read %d bytes of disk\n", read_from_file(disk, 0, disk_buf, sizeof(disk_buf)));
 	printf("Read %d bytes of handler\n", (handler_file_length = read_from_file(handler, 0, handler_buf, sizeof(handler_buf))));
-	/*for (i = 0; i < handler_file_length; i += 2)
+#undef CHATTY
+#ifdef CHATTY
+	printf("Disk buffer:");
+	for (i = 0; i < 454; i += 2)
 	{
-		printf("%04o\n", decode_word(handler_buf, i));
+		if (i%16 == 0)
+			printf("\n%04o)", i);
+		printf("%04o ", (disk_buf[i+1]<<8) | disk_buf[i]);
 	}
+	printf("\n");
+#endif
+#ifdef CHATTY
+	printf("Driver buffer:");
 	for (i = 0; i < handler_file_length; i++)
 	{
-		printf("%03o\n", (unsigned char) handler_buf[i]);
-	}*/
+		if (i%16 == 0)
+			printf("\n%04o)", i);
+		printf("%03o ", (unsigned char) handler_buf[i]);
+	}
+	printf("\n");
+#endif
 	i = 0;
 	while (handler_buf[i] == 0200)
 		i++;
 	printf("Position after leader: %04o\n", i);
-	i += 4; //skip past origin
+	// There was an issue where the assembler generates an extra origin.
+        while (handler_buf[i] & 0100) {
+		i += 2; //skip past origin
+	}
 	count = -decode_word(handler_buf, i) & 07777;
 	printf("Number of devices: %d\n", count);
 	count *= 16; //count number of device entries
-	i += (4 + count); //skip past device entries, count, and size of bootloader
+	i += (4 + count); //skip past count, device entries, and size of bootloader
 	start_btldr = i;
 	printf("Position of bootloader: %04o\n", start_btldr);
-	
-	for (i; ((handler_buf[i] != 0102) && (i < sizeof(handler_buf))); i++); //get to start of handler
+	// Search for an origin of 02xx, as that's where the driver starts.
+	for (i; ((handler_buf[i] != 0102) && (i < sizeof(handler_buf))); i++);
+        // Skip over the origin.
+	length_btldr = (i-start_btldr) / 2;
+	printf("Boot length is %d (%04o)\n", length_btldr, length_btldr);
 	i += 2;
-	i += 14; //skip past zeros
+	i += 14; //skip past seven words worth of zeros
 	start_handler = i;
 	printf("Position of handler: %04o\n", start_handler);
 	
-	bin_to_djg(handler_buf, disk_buf, start_btldr, 0, 39);
-	bin_to_djg(handler_buf, disk_buf, start_handler, 0x10E, 92);
+	bin_to_djg(handler_buf, disk_buf, start_btldr, 0, length_btldr);
+	// 0416 is where the driver starts in block 0.
+// BUGBUG: Where does 92 come from?
+	bin_to_djg(handler_buf, disk_buf, start_handler, 0416, 92);
 	
+#ifdef CHATTY
+	printf("Disk buffer:");
+	for (i = 0; i < 454; i += 2)
+	{
+		if (i%16 == 0)
+			printf("\n%04o)", i);
+		printf("%04o ", (disk_buf[i+1]<<8) | disk_buf[i]);
+	}
+	printf("\n");
+#endif
 	write_to_file(disk, 0, disk_buf, sizeof(disk_buf));
 	return 0;
 }

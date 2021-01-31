@@ -1,5 +1,5 @@
 ## Basic how-to guide for using SerialDisk server and handlers ##
-### Written for: SerialDisk_v0.9.6 ###
+### Written for: SerialDisk Drivers Revision F or above ###
 
 ### INTRODUCTION ###
 
@@ -9,10 +9,10 @@ code and such, it is easiest to ensure the address of the card is set to
 40/41 rx/tx. Else, you will have to change the two lines in the handler 
 files to set the address to something else. 
 
-Currently, the handlers only support Omnibus machines with the 
-traditional M8650/M8655 asynchronous serial card. However, work is being 
-done to improve compatibility with earlier machines, as well the DECmate 
-series.
+Currently, the handlers only support machines with the traditional 
+M8650/M8655 asynchronous serial cards or their equivalants. However,
+work is being done to remove the remaining incompatibility with earlier
+machines, as well the DECmate series.
 
 ### COMPILING THE PROGRAMS ###
 
@@ -26,19 +26,19 @@ Extract this in an easy-to-find spot. We'll be doing all of our work
 within that directory.
 
 Once you've extracted the contents, you should see a README and the 
-actual distribution files within the SerialDisk_v0.9.6 directory. 
+actual distribution files within the SerialDisk directory. 
 
-Change directory to `SerialDisk_v0.9.6/server`. To compile, type 
+Change directory to `SerialDisk/server`. To compile, type 
 `gcc -o os8disk server.c`. This should compile the server with no 
-warnings or errors. If you have encountered an error, please report it by
-emailing Kyle Owen (kylevowen@gmail.com). 
+warnings or errors. If you have encountered an error, please report
+it by emailing Kyle Owen (kylevowen@gmail.com). 
 
 To test the server very quickly, just run the server with no arguments: 
 `./os8disk`. You should see this printed:
 
 	$ ./os8disk
-	PDP-8 Disk Server for OS/8, v1.0
-	Usage: ./os8disk -1 system [-2 disk2] [-r 1|2] [-w 1|2] [-b bootloader]
+	PDP-8 Disk Server for OS/8, v1.2
+	Usage: ./os8disk -1 system [-2 disk2] [-3 disk3] [-4 disk4] [-r 1|2|3|4] [-w 1|2|3|4] [-b bootloader]
 
 Now it's time to build the handler installer. This is a program that 
 will take an OS/8 formatted binary system handler and copy it to the 
@@ -75,6 +75,7 @@ debugging information. It should look something like this:
 	Position after leader: 0360
 	Number of devices: 3
 	Position of bootloader: 0450
+	Boot length is 38 (0046)
 	Position of handler: 0604
 
 ### CONFIGURING THE SERVER ###
@@ -89,7 +90,7 @@ line is the name of your serial device.
 ### STARTING THE SERVER ###
 
 At this point, we're ready to start the server. The server can handle up 
-to two disk images. To start the server, change the directory back to 
+to four disk images. To start the server, change the directory back to 
 `../server` and run `./os8disk -1 ../disks/diagpack2.rk05`. The `-1` 
 tells the disk server that the following image should be mounted as the 
 primary disk.
@@ -170,7 +171,7 @@ First though, we must get the system and non-system handlers onto the
 disk and assemble them. We can use OS/8's EDIT to do this.
 
 	.R EDIT
-	*SYS:DSKNSY.PA<
+	*SYS:SDSKNS.PA<
 
 	#A[enter]
 
@@ -187,18 +188,18 @@ Once done, press [enter] once, then control-L to get back to command
 mode, then type E[enter]. This will end the EDIT session and dump the 
 buffer to disk.
 
-Run EDIT again, and this time make a new file called `SYS:DSKSYS.PA`. 
+Run EDIT again, and this time make a new file called `SYS:SDSKSY.PA`. 
 Send it `../handler/sys_handler.pal` the same way you sent the other. 
 
 Once you've sent the two files, it's time to assemble them.
 
 	.R PAL8
-	*SYS:DSKNSY.BN<SYS:DSKNSY
+	*SYS:SDSKNS.BN<SYS:SDSKNS
 	ERRORS DETECTED: 0
 	LINKS GENERATED: 0
 
 	.R PAL8
-	*SYS:DSKSYS.BN<SYS:DSKSYS
+	*SYS:SDSKSY.BN<SYS:SDSKSY
 	ERRORS DETECTED: 0
 	LINKS GENERATED: 0
 
@@ -243,7 +244,7 @@ handlers we need. In order to keep the number of handlers under 15 for
 BUILD to work properly, we'll also need to DElete another couple of handlers;
 I chose to get rid of the DECtape handlers.
 
-	$LO SYS:DSKSYS
+	$LO SYS:SDSKSY
 
 	$PR
 
@@ -252,12 +253,12 @@ I chose to get rid of the DECtape handlers.
 	RX02: *RXA0 *RXA1
 	TD8A: *DTA0 *DTA1
 	RL0 : *RL0A *RL0B
-	SDSK:  SYS   SDA0  SDB0
+	SDSY:  SYS   SDA0  SDB0
 
 	DSK=RK8E:SYS
-	$IN SDSK:SYS,SDA0,SDB0
+	$IN SDSY:SYS,SDA0,SDB0
 
-	$LO SYS:DSKNSY
+	$LO SYS:SDSKNS
 
 	$PR
 
@@ -266,8 +267,8 @@ I chose to get rid of the DECtape handlers.
 	RX02: *RXA0 *RXA1
 	TD8A: *DTA0 *DTA1
 	RL0 : *RL0A *RL0B
-	SDSK: *SYS  *SDA0 *SDB0
-	SDSK:  SDA0  SDB0  SDA1  SDB1
+	SDSY: *SYS  *SDA0 *SDB0
+	SDNS:  SDA0  SDB0  SDA1  SDB1  SDA2  SDB2  SDA3  SDB3
 
 	DSK=RK8E:SYS
 	$IN SDSK:SDA1,SDB1
@@ -295,6 +296,15 @@ handler first, we can ensure that the system uses the system
 handler for the first two partitions. That way, OS/8 only has
 to go to the disk to fetch the non-system handler for SDA1/SDB1. 
 
+To enable up to two additional "drives", you'll need to "INsert 
+their handlers with lines like these
+	$IN SDNS:SDA2,SDB2
+	$IN SDNS:SDA3,SDB3
+and UNload or at least DElete some other devices (to stay under 15).
+Possibly thus:
+	$UN RL0
+	$DE RKA1,RKB1
+
 Now it's time to BOot the system, configuring it the way we have 
 described. Once built, save BUILD so that next time we call it for 
 modifications, it knows what the current configuration is. 
@@ -308,9 +318,11 @@ SYS: later once you free up some blocks.
 
 	.
 
-That's it! You're all done. To test out the handlers, try printing the 
-directory of SDB0. If this works, you know you've successfully gotten the 
-handlers installed.
+If your RK05 image had room on SYS: then 'SAVE SYS BUILD' would do.
+
+That's it! You're all done. To test out the new resident handler, try
+printing the directory of SDB0. If this works, you know you've
+successfully gotten the resident handler entry points enabled.
 
 	.DIR SDB0:/P
 
@@ -331,21 +343,29 @@ handlers installed.
 You may have a different file/block count. I played around with the disk 
 image a little before making the tutorial.
 
-If this worked, congratulations. You now have a booting OS/8 system! You 
-try bootloading the machine again to make sure BUILD worked correctly 
-installing the bootloader. 
+If this worked, congratulations. You now have a booting OS/8 system!
+
+Try re-running the server with `-2 ../disks/diag-games-kermit.rk05` 
+on the end to use the SDA1 and SDB1 partitions. This will allow systems
+(with enough memory) to play with MUSIC.SV, Adventure, etc.
+Bootload the machine again to make sure BUILD worked correctly 
+installing the bootloader.
+
+If you INserted the extra devices, you can try out the new server
+options by adding -[34] options to your server invokation, and then
+verify that you can list the directories of SDA2 and SDB2, or even
+SDA3 and SDB3.
 
 ### CONCLUSION ###
 
 Since you now have a fully-functional system, try out some programs. 
 BASIC works fine once you copy it to the SYS: partition. Again, you'll 
 need to delete some files from SYS: if you want to copy some programs 
-over. Try re-running the server with `-2 ../disks/diag-games-kermit.rk05` 
-on the end to use the SDA1 and SDB1 partitions. This will allow systems
-(with enough memory) to play with MUSIC.SV, Adventure, etc. Note: you do 
-not have to halt the PDP-8 to swap out disks. Just make sure no data is 
-being transacted at the time you halt the server, and make sure the SYS: 
-disk stays the same unless you really know what you're doing.
+over.
+
+Note: you do not have to halt the PDP-8 to swap out disks. Just make sure
+no data is being transacted at the time you halt the server, and make sure
+the SYS: disk stays the same unless you really know what you're doing.
 
 Remember, you still need to patch PIP and RESORC if you want to use them 
 with the new devices. Consult the OS/8 Handbook for patching procedures.
