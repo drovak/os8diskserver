@@ -1,0 +1,827 @@
+
+
+
+
+
+
+
+
+
+
+
+
+            FIELD  SERVICE  SOFTWARE  ASSISTANCE  BROCHURE
+
+
+
+
+
+
+
+
+
+
+
+                               D E C X 8
+
+
+
+
+
+
+
+
+
+                             Prepared by:
+
+
+
+
+
+                              Rick Moore
+
+
+
+
+
+
+
+
+
+
+
+
+                             INTRODUCTION
+
+
+
+
+
+       This document concerns the building, initializing, and  running
+
+of a customized version of the PDP-8 System Exerciser, DECX8.
+
+
+
+       The following procedure assumes that the  user  has  a  working
+
+knowledge of rudimentry OS-8 techniques such as  booting  the  system,
+
+listing directories, and saving programs. It is also assumed that  the
+
+neccessary DECX8 builder and execisor modules are available on an OS-8
+
+media, specifically a disk (RK05 or RL01), a Diskette, or a DECtape.
+
+
+
+       For more detailed information, please reference :
+
+
+
+       AC-C276E-MA     -       AXQABE0 DEC/X8 User's Guide
+
+
+
+       and appropriate module listings in the microfiche library.
+
+
+
+DECX8 System Concepts
+
+
+       DECX8 is a modular software system in that the total system may
+have many unique software configurations dependent upon the  type  and
+placement of various software modules. Software exerciser modules  may
+be inserted into a predetermined skeletal frame and  initialized  with
+the particular parameters to give the tailored exerciser  the  desired
+characteristics. In this manner, DECX8 can be "tuned" to exercise  the
+hardware with much the same loading factor  as  the  operating  system
+software.
+
+       DECX8 may be built for any size system; from 8K to 32K, or even
+up to 128K if the KT8A Memory  Management  Option  is  available.  For
+purposes of general discussion, we will assume a system size of 16K.
+
+       A DECX8 software module (job) is  a  sub  program  designed  to
+exercise specific  hardware  functions  under  control  of  the  DECX8
+software system. There  are  two  basic  types  of  software  modules,
+interrupt driven and background.  Interrupt  driven  modules  exercise
+devices which cause program interrupts. The continued running of  this
+type of module is dependent on its next device  interrupt.  Background
+modules are self sustaining programs and do not  generate  or  require
+program interrupts.
+
+       The sequence in which jobs are serviced,  both  for  interrupts
+and housekeeping, is a function of each job's priority.  Under  normal
+operating conditions, the higher priority jobs are serviced first. Job
+priorities are assigned by the user at build  time  and  remain  fixed
+thereafter. The designation for job priority  is  a  two  digit  octal
+number starting at the highest priority , 00, to the  lowest,  37.  In
+addition, if the system has greater than 32K words  of  memory  and  a
+KT8A Memory Management option,  it  will  be  neccessary  to  map  the
+priority of the Data Break options.
+
+       Each software job, running at a given priority, is located in a
+"jobslot", of which there are 4 per memory field. The first  2  are  4
+page slots, the remaining 2 are 2 page slots. An exercisor module that
+takes 2 pages may reside  in  a  4  page  slot,  but  not  visa-versa.
+Therefore our system of 16K looks like:
+
+
+
+
+       SLOT                    MEMORY  FIELD
+
+                      0       1        2        3
+                  -----------------------------------
+                 |        |        |        |        |
+        1        | 4 page | 4 page | 4 page | 4 page |
+                 |        |        |        |        |
+                  -----------------------------------
+                 |        |        |        |        |
+        2        | 4 page | 4 page | 4 page | 4 page |
+                 |        |        |        |        |
+                  -----------------------------------
+                 |        |        |        |        |
+        3        | 2 page | 2 page | 2 page | 2 page |
+                 |        |        |        |        |
+                  -----------------------------------
+                 |        |        |        |        |
+        4        | 2 page | 2 page | 2 page | 2 page |
+                 |        |        |        |        |
+                  -----------------------------------
+
+BUILDING PHASE
+
+
+       The OS-8 medium that DECX8 is contained on must be  initialized
+by normal methods. Then type:
+
+
+               ".R DECX8"              ( or whatever it is called )
+
+
+       If you are running from the NED Diagnostic System, the  program
+will come up running, if not, it will halt at location 201.
+
+       a)  place the device code of the console teleprinter
+           (usually 04) in SR bits 3-8 and hit continue. The TTY
+           will print a message and halt again.
+
+       b)  place the device code of the console keyboard
+           (usually 03) in SR bits 3-8 and hit continue.
+
+
+       the program will now print:
+
+
+       HSR?            - if there is a high speed reader, answer "Y";
+                         if not, "N"
+
+       DEVICE CODE     - if "Y" to above; enter device code of reader
+                         ( usually 01 )
+
+       HSP?            - answer "Y" or "N" for high speed punch
+
+       DEVICE CODE     - same as above  ( usually 02 )
+
+       EXT MEM?        - type the number of the highest memory field
+                         in the system  (00-37)
+
+
+       the program will now determine the type of CPU:
+
+
+       PDP-8?          - "Y" only if the processor is a traditional 8
+
+       PDP-8/E?        - "Y" for an 8/e; "N" otherwise
+
+       VT78?           - "Y" for a VT78; if "N" to all the above, a
+                          8L/8I is assumed
+
+
+NOTE:
+
+       The purpose of the VT78 question is  to  remove  any  halts  or
+references to the SR from the  customized  version  of  the  exerciser
+being built since a VT78 has no hardware switch register. However, the
+"Catch-22" of this is that without a switch register, it is impossible
+to enter  the  03-04  device  codes  and  hit  continue.  The  program
+"DECX8.SV" on the NED Diagnostic System has patches (listed at the end
+of this text) which remove these halts and  assume  a  console  device
+code of 03-04 so it is possible to build DECX8 on  a  VT78  or  PDP-8A
+with no switch register.
+
+
+
+       the program will now determine which options exist:
+
+
+       (answer "Y" or "N" for each query)
+
+
+       KT?     *       - for KT8A Memory Management option
+
+       VT100?          - inserts XON  /  XOFF  capabilities  for  slow
+                         scroll operation over 2400 baud
+
+       EAE?            - Extended Arithmetic Element
+
+       PF?             - Power Fail / Auto Restart option
+
+       MP?             - Memory Parity option
+
+       TS?             - Time Sharing Control is active
+
+
+
+
+       * if you specify a KT8A, it  will  be  neccessary  to  map  the
+priority  of  any  Data  Break  devices   during   the   initalization
+stage. See the section on initialization for more information.
+NOTE:  For the remainder of this document, the  operator  to  computer
+       responses will be enclosed in  [] brackets,  while  program  to
+       operator prompts are in plain text.
+
+
+
+
+       At this time, the program will print:
+
+
+       ^C
+       !       and you are in the DECX8 monitor
+
+
+       To transfer control to the builder
+
+
+       ! [^B] OK? [Y]
+
+
+       The program will ask:
+
+
+       INPUT VIA OS/8? [Y]
+       OUTPUT VIA OS/8 USING FILE BASED DEVICE? [Y]
+
+
+       % [B]           this prompt indicates the program is  ready  to
+                       accept builder commands and then prints
+
+
+       PRI:00 %        indicating  the  program  is  waiting  for  the
+                       jobslot assignment for priority level "00"
+
+
+
+       At this time, install the various jobs into the system  as  the
+jobslots  are  opened.  You  may  be  asked  to  provide   information
+concerning device codes, word count, and current  addresses.  In  most
+cases, the default values may be  taken  by  typing  a  <CR>  but  any
+nonstandard values can be specified.
+
+       Install them in  priority  order,  with  the  fast  data  break
+devices first, followed by  interupt  driven  devices,  and  then  the
+background programmed I/O devices. This is a  general  rule  to  which
+some noteworthy exceptions are that "TIMERA" must be PRI00  if  it  is
+installed; "TC01DT" must be highest priority (after TIMERA). These and
+other special conditions are noted in the individual  module  writeups
+that are included in the DECX8 section of the Microfiche Library.
+       After all of the jobslots are filled:
+
+
+       PRI:nn % [^C]   CTRL C to return to DECX8 monitor
+
+       ! [S]           to list all the modules you have inserted
+
+
+       At this time, you must  initalize  some  of  the  modules  with
+various parameters to tell the system, for example, the number of disk
+drives to be run, the data patterns to be run, etc.
+
+
+       ! [IJfx]        where "fx" is the jobslot (ie: IJ01, IJ13)
+
+or     ! [AI]          Initialize all jobs
+
+
+
+       The initialization data  for  each  module  is  listed  in  the
+various modules writeups in the Microfiche Library.
+
+
+
+       If you have  built  a  system  that  includes  a  KT8-A  Memory
+Management option (more than 32K words od memory), it is neccessary to
+map the priority of the Data Break  devices.  This  situation  usually
+arises on the new 211 Series Word Processors. If  this  is  not  done,
+these devices will report  numerous  data  errors  and  appear  to  be
+faulty.
+
+
+       ![MPJfx]        followed by the assigned priority for the
+                       device
+
+
+       Examples of such devices are RL01s and RK05s.
+
+
+
+
+When all jobs are initialized:
+
+
+       ! [^B]  ^B OK? [Y]
+
+       % [P]           this will write the newly created exercisor  to
+                       the OS/8 media. Give it any name you wish,  but
+                       for consistency, please use the extension ".X8"
+
+
+
+       At this time, the customized version of DECX8 is saved  on  the
+OS/8 media, and can be run by typing:
+
+
+       .R MYPROG.X8
+       ! [AR]                  run all jobs
+       ! [^E]                  begin exercising
+
+       The following text is typical of the dialogue to  build,  save,
+and run a customized version of DECX8. Our target  system  will  be  a
+PDP-8A with 16K of memory,2 RK05 drives,  a  TC08  DECtape  controller
+with a dual drive TU56,2 RX01 dual floppies, a KL8A  (M8319)  Multiple
+SLU option connected to two  terminals  at  9600  baud,  and  an  LP05
+printer. The terminal is a VT100 connected to the M8316 module.
+
+       A map of our jobslot layout could look like:
+
+
+
+
+       SLOT                    MEMORY  FIELD
+
+                      0       1        2        3
+                  -----------------------------------
+                 |        |        |        |        |
+        1        | TIMERA | RANMRI | MULSLU | FLOPPY | 4 page jobs
+                 |        |        |        | (2&3)  |
+                  -----------------------------------
+                 |        |        |        |        |
+        2        | FLOPPY | TC01DT | RK8EDS | OPRATE | 4 page jobs
+                 |  (0&1) |        |        |        |
+                  -----------------------------------
+                 |        |        |        |        |
+        3        | MRI08A | PRNTER | OPRATE | MRI08A | 2 page jobs
+                 |        |        |        |        |
+                  -----------------------------------
+                 |        |        |        |        |
+        4        | NOTFUN | OPRATE | MRI08A | OPRATE | 2 page jobs
+                 |        |        |        |        |
+                  -----------------------------------
+
+
+
+OF SPECIAL NOTE:
+
+       - TIMERA must be J01
+
+       - there are two FLOPPY modules that  will  be  given  different
+         device codes
+
+       - a 2 page job (OPRATE) can live in a 4 page slot
+
+       - any unused slots are filled with background jobs (OPRATE  and
+         MRI08A)
+
+       - when building for a VT78 system, there may be patches to  the
+         modules that must be made. Consult the  module  writeups  for
+         particulars.
+
+       - if a KT8A is present, the priority of the Data Break  devices
+         must be mapped with the [MPJfx] command.
+BUILDING DIALOGUE
+
+
+note:  operator responses are enclosed in brackets []
+
+
+
+.R DECX8                       - the OS/8  media  is  booted  and  the
+                                 DECX8 monitor/builder is  called  and
+                                 identifies itself
+
+HSR? [N]
+HSP? [N]                       - the system has no PC04
+
+EXT MEMORY (00-37) [03]        - we have fields 00-03  (16K)
+
+PDP-8? [N]                     - not a "Straight-8"
+
+PDP-8E [Y]                     - same as an 8A !
+
+KT? [N]
+
+VT100? [Y]                     - as our console terminal
+
+EAE? [N]
+
+PF? [Y]                        - comes "free" on the M8317 in the 8A
+
+MP? [N]
+
+TS? [N]
+
+^C
+
+
+! [^B] ^B OK? [Y]              - now in builder mode
+
+INPUT VIA OS/8? [Y]
+
+OUTPUT VIA OS/8 FILE BASED DEVICE? [Y]
+
+
+% [B]                          - begin to build, installing modules in
+                                 priority order
+
+
+PRI:00% [J01]
+*TIMERA
+DC = 0130                      - type a carraige return  to  take  the
+                                 default device code  of  13  for  the
+                                 clock (remember there is one  on  the
+                                 M8316 in the 8A!)
+
+PRI:01% [J12]
+*TC01DT                        - remember the TC08 must be first after
+DC = 0760                        the clock module
+   = 0770
+WC = 7754                        take all the default values for  word
+                                 count
+CA = 7755
+
+
+PRI:02% [J22]
+*RK8EDS                        - the RK05 controller module
+DC = 0740
+
+
+PRI:03% [J13]
+*PRNTER                        - now do the fastest interupt driven
+DC = 0660                        jobs such as the line printer
+
+
+PRI:04% [J21]
+*MULSLU                        - the KL8A is next
+DC = 0400
+     0410                      - 40 & 41 are the standard device codes
+                                 for the four line M8319
+
+
+PRI:05% [J02]                  - now the programmed I/O devices
+*FLOPPY
+DC = 0750                        drives 0 & 1 have the standard device
+                                 code of 75
+
+
+PRI:06% [J31]
+*FLOPPY                        - but drives 2 & 3 have their own
+DC = 0750  [0700]                control board that we  have  set  for
+                                 device code 70 (note that this  could
+                                 be other address we set the  hardware
+                                 to). Be aware that  the  normal  code
+                                 for the 2nd. set of  floppies  is  76
+                                 but since this system has DECtapes at
+                                 that code, we choose 70.
+
+
+PRI:07% [J11]                  - now install the background jobs
+*RANMRI
+
+
+PRI:10% [J34]
+*OPRATE
+PRI:11% [J03]
+*MRI08A
+
+
+PRI:12% [J04]
+*NOTFUN
+
+
+PRI:13% [J32]
+*OPRATE
+
+
+PRI:14% [J33]
+*MRI08A
+
+
+PRI:15% [J24]
+*MRI08A
+
+
+PRI:16% [J23]
+*OPRATE
+
+
+PRI:17% [J14]
+*OPRATE
+
+
+PRI:20% [^C]                   - no more jobslots available; return to
+                                 builder monitor
+
+
+
+!                              - now  you  have  to   initialize   the
+                                 exercisor
+
+
+
+! [IJ01]
+TIMERA
+A      [232]                   - remember that these parameters are
+B      [0001]                    for the M8316 module
+C      [0144]
+D      [0]
+
+
+! [IJ02]
+FLOPPY
+A      [0]
+B      [0]
+C      [0]
+D      [0]
+
+
+! [IJ03]
+MRI08A
+
+
+! [IJ04]
+NOTFUN     [0]
+
+01     [03]                    - now you must insert ALL of the valid
+02     [04]                      device codes starting with the TTY
+03     [10]                    - power fail IOTs are on the M8317
+04     [13]                    - clock
+05     [20]                    - have to list
+06     [21]                            all of the
+07     [22]                                    extended
+10     [23]                                    memory
+11     [24]                            IOTs on the
+12     [25]                      M8317 module  (20-27)
+13     [26]
+14     [27]
+15     [40]                    - 40 & 41 are for the M8319 Multiple
+16     [41]                      Serial Line Interface
+17     [57]                    - this is the M8316 Parrallel Port
+20     [66]                    - line printer
+21     [70]                    - floppy drives 2 & 3
+22     [74]                    - RK8E
+23     [75]                    - floppy drives 0 & 1
+24     [76]                    - 76 & 77 are the TC08 DECtape
+25     [77]
+26     [00]                    - 00 is the CPU IOTs and the end of the
+                                 table
+
+
+       *** note:       if you are initializing this module for a VT78,
+                       be sure to include [07] which is the VT78 panel
+                       memory IOT. For a PDP-8A with a M8316 module,
+                       [57] is the parallel port. These must be
+                       included or NOTFUN will give errors.
+
+
+!IJ11
+RANMRI
+
+
+!IJ12
+TC01DT
+A      [0]
+B      [1]                     - lowest & highest drive numbers
+C      [1]     [0004]          - start with block 4
+D      [0]
+E      [0]
+F      [0]
+!IJ13
+PRNTER
+A      [0100]                  - # of characters
+B      [0204]                  - 132 columns (80 column would be 0120)
+C      [0]
+D      [0]
+E      [0]
+F      [0]
+
+
+!IJ14
+OPRATE [2]                     - this is an 8/e or 8/a
+
+
+!IJ21
+MULSLU [1]                     - indicates we are going to terminals
+0      [2]     [377]             line 0 to terminal, full ASCII
+1      [2]     [377]             character set to be transmitted
+2      [0]
+3      [0]                       lines 2 and 3 are deactivated
+
+
+!IJ22
+RK8EDS
+A      [0]                     - lowest drive # 0
+B      [1]                     - highest is #1
+C      [0]
+D      [0]
+E      [0]
+
+
+!IJ23
+OPRATE [2]
+
+
+!IJ24
+MRI08A
+
+
+!IJ31
+FLOPPY
+A      [0]
+B      [0]
+C      [0]
+D      [0]
+
+
+!IJ32
+OPRATE [2]
+
+
+!IJ33
+MRI08A
+
+
+!IJ34
+OPRATE [2]
+
+
+
+! [^B] ^B OK? [Y]              - now to save  the  exercisor  on  your
+                                 disk
+
+
+
+% [P]
+
+
+UPON ".", TYPE "SAVE (DEV) (FILE)" - - -
+
+
+. [SAVE SYS TEST.X8]
+
+
+.                              - you are  back  in  OS-8  monitor  and
+                                 done!
+                 DECX8 Runtime Switch Register Options
+
+
+
+
+    SR Bit       State               Function
+    ______       _____               ________
+
+
+       0         0         Monitor serves jobs according to priority
+                 1         Monitor serves jobs in a sequential manner
+
+       1         0         All jobs run in "Executive" mode only
+                 1         All jobs run in "User" mode whenever possible
+
+       2         0         Enable normal Rotate and Status reports
+                 1         Disable normal reports and ignore ^S requests
+
+       3         0         Status reports generated in long form
+                 1         Status reports generated in short form
+
+       4         0         Enable slot rotation if memory larger than 8K
+                 1         Disable slot rotation
+
+   *   5         0         Jobs MQ contents are preserved and restored
+                 1         MQ displays priority of current job
+
+       6         0         Errors take normal exit to failing job
+                 1         Non-fatal errors return to keyboard monitor
+
+      7-8       00         Report all errors including all bad data
+                01         Report errors and first 4 sets of bad data
+                10         Report all errors except data errors
+                11         Report no errors
+
+       9         0         Upon error the job continues to run
+                 1         Upon error the kill flag for the job is set
+
+      10         0         Random external buffer usage occurs
+                 1         Present external buffer assignments frozen
+
+      11         0         Random device, unit, and address selection
+                 1         Device, unit, and address selection frozen
+
+
+
+
+
+          *    DO NOT set to a 1 if any EAE jobs are running!
+                       DECX8 Keyboard  Command Summary
+
+
+
+
+       Command                       Function
+       _______                       ________
+
+
+        ^B            Switch control to Builder
+        ^C            Calls DECX8 Keyboard Monitor
+        ^E            Exercise all Enabled Jobs
+        ^R            Force Rotation and Exercise jobs
+       IJfx           Initialize Job "Jfx"
+       MPJfx          Map Priority for device in Job "Jfx"
+       RJfx           Run Job "Jfx"
+       KJfx           Kill Job "Jfx"
+        AI            Initialize All Jobs
+        AK            Kill All Jobs
+        AR            Run All Jobs
+       ^OBfaaaa       Modify Field "f" Location "aaaa"
+       ^OJfx          Relative mode memory modification
+        RRRR          Relative address in "Jfx"
+        S             Generate Status Report
+        W             Go to OS-8 keyboard monitor; save swap area
+        X             Go to OS-8 keyboard monitor without save
+       Dnn            Console output to terminal device code "nn"
+       Lnn            Console output on LE8 / LP05 device code "nn"
+       Tnn            Console input from keyboard device code "nn"
+       (%)B           Build Exerciser
+       (%)P           Punch or Save Exerciser
+       (%)ES          Print remaining empty job slots under builder
+                             PATCHES  to  DECX8
+
+       The following patches are incorporated into the program "DECX8.SV" on
+the NED Diagnostic System. These allow the building and use of  DECX8  on  a
+system that has no hardware switch register.
+
+
+       Location       Old Value      New Value         Reason
+       ________       _________      _________         ______
+
+       00200            7402           7000            remove halt
+       00201            7704           1265            standard device code
+       00210            7402           7000            remove halt
+       00211            7704           1366            standard device code
+
+
+for the RKS8E module
+
+       16334            7402           7000            or hit CONTINUE
+
+
+for ".BX" default extension
+
+       16034            0216           0230
+
+
+
+
+    The following locations can be patched using the ^O(dt) feature of the
+DECX8 monitor to simulate the action of the front panel Runtime Switch
+Register Options. Set the appropriate location to a value of 7340 to set the
+bit to a 1.
+
+
+    Bit            Location            Function
+    ___            ________            ________
+
+    0               01675              Ring Queing
+    1               01511              User or Exec mode
+    1               13071              user mode
+    2               11713              enable or disable all status reports
+    3               11524              long or short status reports
+    3               11623                "      "            "
+    4               12000              inhibit rotation
+    4               12034                "      "
+    5               01454              use of MQ
+    6               02704              action upon error return
+
+
+
+    to set bits 7 & 8
+
+    00  -  do nothing
+    01  -  locations 02633 and 02643 get 7340
+    10  -  location 02643 gets 7340
+    11  -  locations 02633, 02643, and 02723 get 7340
+
+
+

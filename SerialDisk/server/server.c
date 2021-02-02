@@ -1,48 +1,57 @@
 /* 
-	This program talks to the PDP-8 via an asynchronous serial interface to
-	simulate disk drives located as a file on the PC.
-	It needs a config file disk.cfg or $HOME/.disk.cfg with the format defined in
-	config.c
-	Disk file format is compatible with the ubiquitous SimH etc. format.
-
-	Press ctrl-C to stop the server.
-
-	Kyle Owens original version
-	---------------------------
-
-	TODO:
-	DONE - transfer 0040 pages if page count is 0 (and not field 0!)
-	DONE - emulate RK05 disk pack (requires two entry points)
-	DONE - make program to replace bootloader and handler on disk packs
-	- ctrl-c operation (for non-system version)
-	DONE - non-system version
-	DONE - increase transfer rate
-	- clean up code
-	- make better converter utilities
-	- write better test utility
-	- check length of file on start
-	- grow filesystem as writes occur
-	- timeout
-	- hardware handshaking
-	- fix RIM loading
-
-	Bob Adamson modifications
-	-------------------------
-
-	Minor changes to variable naming to suit myself ;-) 6/Nov/2015
-	Minor changes to text  output 6/Nov/2015
-	Increased to serving (up to) 4 disks (for nonsystem handler) 6/Nov/2015
-	Added command to shut down the server ('Q' from client)
-	 - very system dependent, but wanted for dedicated (eg raspberry Pi) server
-
-	TODO:
-	Remove bootloader code?
-	Consider ^C interrupt issues - at present no interruptions are possible:
-	- interrupting during a read is no problem in theory but the server will
-	  blow up if the pdp-8 transmits while the server is still flushing the read.
-	  (Note the pdp-8 will do this if it exits to OS/8 on a ^C)
-	- interrupting a write will hang the server as it will keep waiting for the
-	  remainder of the transmission.
+//	This program talks to the PDP-8 via an asynchronous serial interface to
+//	simulate disk drives located as a file on the PC.
+//	It needs a config file disk.cfg or $HOME/.disk.cfg with the format defined in
+//	config.c
+//	Disk file format is compatible with the ubiquitous SimH etc. format.
+//
+//	Press ctrl-C to stop the server.
+//
+//	2/1/21 V1.3 Vince Slyngstad
+//	---------------------------
+//
+//	Re-ordered the edit history to put recent changes on top.
+//	Fix a problem where success was returned instead of failure
+//	  when attempting to access a disk image not specified on the
+//	  command line.
+//	Version number bumped to 1.3.
+//
+//	Bob Adamson modifications
+//	-------------------------
+//
+//	Minor changes to variable naming to suit myself ;-) 6/Nov/2015
+//	Minor changes to text  output 6/Nov/2015
+//	Increased to serving (up to) 4 disks (for nonsystem handler) 6/Nov/2015
+//	Added command to shut down the server ('Q' from client)
+//	 - very system dependent, but wanted for dedicated (eg raspberry Pi) server
+//
+//	Kyle Owens original version
+//	---------------------------
+//
+//	TODO:
+//	DONE - transfer 0040 pages if page count is 0 (and not field 0!)
+//	DONE - emulate RK05 disk pack (requires two entry points)
+//	DONE - make program to replace bootloader and handler on disk packs
+//	- ctrl-c operation (for non-system version)
+//	DONE - non-system version
+//	DONE - increase transfer rate
+//	- clean up code
+//	- make better converter utilities
+//	- write better test utility
+//	- check length of file on start
+//	- grow filesystem as writes occur
+//	- timeout
+//	- hardware handshaking
+//	- fix RIM loading
+//
+//	TODO:
+//	Remove bootloader code?
+//	Consider ^C interrupt issues - at present no interruptions are possible:
+//	- interrupting during a read is no problem in theory but the server will
+//	  blow up if the pdp-8 transmits while the server is still flushing the read.
+//	  (Note the pdp-8 will do this if it exits to OS/8 on a ^C)
+//	- interrupting a write will hang the server as it will keep waiting for the
+//	  remainder of the transmission.
 */
 
 #include <termios.h>
@@ -53,6 +62,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <err.h>
 
 #define TERM_COLOR
 
@@ -91,8 +101,8 @@ int terminate = 0;
 #include "config.c"
 #include "comm.c"
 
-//note we expect there to be (at least) a first disk, disk1
-//although this would not be strictly necessary for non-system devices
+// Note: We expect there to be (at least) a first disk, disk1
+// although this would not be strictly necessary for non-system devices
 static const char usage[] = "Usage: %s -1 disk1 [-2 disk2] [-3 disk3] [-4 disk4] [-r 1|2|3|4] [-w 1|2|3|4] [-b bootloader]\n";
 
 int initialize_xfr();
@@ -248,7 +258,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	printf("PDP-8 Disk Server for OS/8, v1.2\n");
+	printf("PDP-8 Disk Server for OS/8, v1.3\n");
 
 	if (!use_disk1)
 	{
@@ -346,14 +356,14 @@ int main(int argc, char* argv[])
 	}
 
 /*
-command processor
-accepts the following wakeup commands:
-@	- read the first sector/first side/first disk (boot sector)
-A	- process command to first side of first disk
-B	- process command to second side of first disk
-C-H	- process command to first/seconds side of second/third/fourth disk
-Q	- stop operations and shut down the server
-	- anything else is a (non-fatal) error
+// Command processor
+// Accepts the following wakeup commands:
+// @	- read the first sector/first side/first disk (boot sector)
+// A	- process command to first side of first disk
+// B	- process command to second side of first disk
+// C-H	- process command to first/second side of second/third/fourth disk
+// Q	- stop operations and shut down the server
+//	- anything else is a (non-fatal) error
 */
 	
 	for (;;)
@@ -411,7 +421,7 @@ Q	- stop operations and shut down the server
 				}*/
 				if (initialize_xfr())
 				{
-					fprintf(stderr, MAKE_RED "Failed to initialize, sending NACK\n" RESET_COLOR);
+					fprintf(stderr, MAKE_RED "Failed to initialize, sending NACK %04o\n" RESET_COLOR, acknowledgment);
 					send_word(acknowledgment);
 				}
 				else
@@ -577,6 +587,7 @@ int initialize_xfr()
 		{
 			fprintf(stderr, MAKE_RED "Warning: no second disk!\n" RESET_COLOR);
 			acknowledgment = NACK;
+			selected_disk = 2;
 			retval = -1;
 		}
 		else
@@ -591,11 +602,13 @@ int initialize_xfr()
 		{
 			fprintf(stderr, MAKE_RED "Warning: no third disk!\n" RESET_COLOR);
 			acknowledgment = NACK;
+			selected_disk = 3;
 			retval = -1;
 		}
 		else
 		{
 			selected_disk_fp = disk3;
+			selected_disk = 4;
 			selected_disk = 3;
 		}
 	}
@@ -639,15 +652,19 @@ int initialize_xfr()
 			fprintf(stderr, MAKE_RED "Warning: unused bits in device code are set!\n" RESET_COLOR);
 	}
 		
-	if (current_word & 04000)
+	// Do not attempt to over-write failure with success here!
+	if (retval == 0)
 	{
-		direction = WRITE;
-		acknowledgment = ACK_WRITE;
-	}
-	else
-	{
-		direction = READ;
-		acknowledgment = ACK_READ;
+		if (current_word & 04000)
+		{
+			direction = WRITE;
+			acknowledgment = ACK_WRITE;
+		}
+		else
+		{
+			direction = READ;
+			acknowledgment = ACK_READ;
+		}
 	}
 	
 	num_pages = (current_word & 03700) >> 6;

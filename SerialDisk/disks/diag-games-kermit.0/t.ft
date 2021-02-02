@@ -1,0 +1,6 @@
+	I=5
+	WRITE(4,101) I
+ 101	FORMAT(' TEST ',I6)
+	CALL EXIT
+	END
+

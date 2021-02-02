@@ -1,0 +1,224 @@
+	War and Peace
+
+		by Mario DeNobili
+
+?ARG	The following argument combinations are illegal:
+
+	1)	,	(no argument before comma)
+	2)	m,n,	(more than two arguments)
+	3)	H,	(because H=B,Z is already two arguments)
+?MEM	The current operation requires more memory storage for text
+	(in the text buffer) than TECO has available.
+	There is room for at most 4000 (decimal) characters of text.
+?FER	File error can mean one of five things:
+
+	1)	Input file not found on an ER command
+	2)	Error while trying to enter the output file
+		on an EW or EB command
+	3)	The device specified in a file specification does not exist
+	4)	EB command given on a non-file-structured device
+	5)	Attempt to perform an EB on a file with a .BK extension
+?FUL	An output command such as P, EX, EC, EG, PW, N, or FN would
+	have written more data to the output file than there was room
+	allocated on the output device.  The data that would have overflowed
+	the output device is still in the text buffer and has not been
+	written out.  You can close the output file with an EF command
+	and then open a new output file and continue editing.  When you
+	are all done, PIP can be used to merge the two output files back
+	into one.
+?IEC	The only commands starting with the letter E are
+	EB, EC, ED, EF, EG, EH, EK, EO, ER, ES, ET, EU, EW, EX and EY.
+	When used as a command (i.e. not in a text argument), E may not be
+	followed by any character except one of these.
+
+	Secondary I/O streams (EA, EP, EI), magtape commands (EM), wildcard
+	lookups (EN), and device initialization (EZ) are not available
+	in TECO-8.
+
+	The ES flag does not currently do anything.
+
+?IFC	The only commands starting with the letter F are FS, F_, and FN.
+	When used as a command (other than EF or in a text argument),
+	F may not be followed by any character other than one of these.
+	The S, _, or N must immediately follow the F with no intervening
+	spaces or commands.  The two characters in an F command may not be
+	split across macros.
+
+	The FR command is not implemented in TECO-8.
+?IFN	File specifications must be in the form dev:filnam.ext
+	where dev, filname, and ext are alphanumeric.  The file
+	specification may optionally end with a /S which means
+	ignore end-of-file on any subsequent input.  No characters
+	other than the ones specified may appear in a text argument
+	to an ER, EW, or EB command.
+?ILL	The specified character is not defined as a valid TECO command.
+	(The W command is only available with VT support.)
+?INP	An I/O error occurred while trying to read from the input file.
+?IQC	The only valid " commands are
+	"C, "R		execute if alphanumeric
+	"E, "=		execute if = 0
+	"F, "U		execute if unsuccessful
+	"L, "<		execute if less than 0
+	"G, ">		execute if greater than 0
+	"N		execute if not equal to 0
+	"S, "T		execute if successful
+	"D		execute if digit
+	"A		execute if alphabetic
+
+	The commands "V, and "W are not available in TECO-8.
+?IQN	The Q register name specified by a command such as Q, U, X, G, %, or M
+	must be a letter (A-Z) or a digit (0-9).
+
+	Pseudo-Q-registers _ and * are not available in TECO-8.
+?ISA	The argument preceding a search command indicates the number
+	of times a match must be found before the search is considered
+	successful.  This argument must be greater than 0.
+	Backward searches and bounded searches are not permitted in TECO-8.
+
+?UTM	A command macro being executed from a Q-register terminated
+	with an incomplete command, such as
+
+	1)	macro ended with with only one character of a two character
+		command (such as F, E, or ^)
+	2)	macro ended with a command that requires a Q-register name
+		(such as X, G, M, %, Q, U, or ^U) but no Q-register
+		name was specified
+	3)	macro ended with a command that takes a string argument
+		(such as ERfile$, Itext$, Stext$, Otag$, etc.)
+		and the text argument was not properly terminated by
+		an ALTMODE (or the specified delimiter if the at-sign
+		form was used)
+	4)	An O command was issued and the specified tag was not
+		found in that macro (subsequent to the start of the
+		current iteration)
+?BNI	There is a right angle bracket not matched by a left angle bracket
+	somewhere to its left.  (Note: an iteration in a macro stored in a
+	Q-register must be complete within the Q-register.)
+?NAE	The command n= or n== causes the value of n to be typed.
+	The = command must be preceded by either a specific numeric
+	argument or a command that returns a numeric value.
+?NAQ	The " command must be preceded by a single numeric argument
+	on which the decision to execute the following commands
+	or skip to the matching ' (or |) is based.
+?NAU	The command nUq stores the value n in Q-register q.  The U
+	command must be preceded by either a specific numeric argument
+	or a command that returns a numeric value.
+?NFO	Before giving an output command (P, PW, N, EC, or EG) it is
+	necessary to open an output file by use of an EB, EW,
+	MAKE or TECO command.
+	To prevent possible loss of data, the EX, EC, and EG commands
+	will be aborted if there is no output file open and there is
+	text in the text buffer.  The HKEX command will always work.
+	To abort TECO immediately, use the ^C command.
+?POP	The argument specified with a J, C, or R command must
+	point to a position within the current size of the text buffer,
+	i.e. between 0 and Z inclusive.
+	The argument to commands that reference pointer positions,
+	such as m,nP or m,nK must reference buffer pointer
+	positions bewteen 0 and Z inclusive.
+?DTB	An nD command was issued with an argument that was so large that
+	the command would delete character positions outside the current
+	buffer.  The D commmand may only delete existing characters.
+	No characters were deleted.
+?OUT	An error occurred while trying to write to the output file,
+	or there was not enough room to enter the file on an EW or EB
+	command.
+?SNI	The semicolon command was used at command level.
+	The ; command may only be used within a string of commands
+	enclosed by angle brackets, i.e. an iteration field.
+?SRH	A search command not preceded by a colon modifier and not within
+	an iteration has failed to find the specified character string.
+	After an S (or FS) search fails, the buffer pointer is left
+	positioned at the beginning of the buffer.  After an N or _
+	search fails, the last page of the input file has been input and, in
+	the case of N, output, and the buffer cleared.
+	The string that you were searching for is shown in the one-line
+	error message.  Note that the special search characters
+	CTRL/N, CTRL/S, and CTRL/X are indicated in this string as
+	<NOT>, <SEP>, and <ANY> respectively.
+
+	Backward searches and bounded searches are not permitted in TECO-8.
+	Anchored searches are also not permitted.
+
+	Note that the action of "^" in search strings depends on the
+	setting of the ED&1 bit.  If 0, then ^ means convert next character
+	to its control character.
+
+?STL	The maximum length of a search string is 31 characters
+	(38 characters if you have no VR12 or VT scope support).
+?UTC	An incomplete command has been given.
+	This could be caused by any of the following:
+
+	1)	A command that requires a text string (such as
+		@ER/file/, @S/text/, ^Atext^A, etc.) ended the
+		command string, but the text argument was not properly
+		terminated.
+	2)	An O command was issued and the specified tag was not found
+		in the command string subsequent to the start of the
+		current iteration.
+?PDO	Your macros and iterations have been nested too deeply.
+?QMO	There is not enough room allocated to Q-register storage and
+	command string storage to satisfy the current command.
+	If you were typing a command string when you got this error
+	message, you might be able to recover most of the command string
+	by immediately typing CTRL/S as the very next command, thus
+	putting the previous command string into Q-register Z.
+
+?NYA	The Y command may not be preceded by a numeric argument.
+	To yank multiple pages, use the n<Y> command.
+?NPA	The argument to a P command specifies the number of times the
+	P command is to be executed.  This argument must be positive.
+?NCA	The number before a comma refers to a position within the
+	text buffer.  This value must be between 0 and Z inclusive
+	and may not be negative.
+?NYI	The case control commands ^V and ^W are not available in TECO-8.
+	To get TECOs version number, issue the EO command.
+	To use the watch command (with VR12 or VT support) use the W command.
+	Also, the push [ and pop ] commands are not implemented in TECO-8.
+?UIS	The only I/O switch that is defined in TECO-8 is the /S switch.
+?WLO	The system device is write-locked.
+?YCA	To prevent accidental loss of data, the commands Y, _ and F_
+	will abort if there is text in the text buffer and there is an
+	output file open.  If you don't care about the output file,
+	you can kill it with the EK command.  The HKY command is always
+	permitted.
+
+	Yank protection can be disabled by clearing bit 10 of the ED flag,
+	i.e. by issuing the TECO command:	ED&1ED
+	This command may be put into your TECO.INI if you dislike yank
+	protection.
+?CCL	You issued a command of the form EGcommand$ and the specified
+	command was too large (more than 43 characters) or CCL.SV
+	was not found on the system device.
+?XAB	Execution of your TECO command or command input was aborted because
+	you typed a CTRL/C.  To get out of TECO, type a CTRL/C immediately
+	after TECO's prompt.  If you accidentally got back to monitor
+	level there is a slight chance that you can get back to TECO
+	by using ODT to restart your core image at location 203.
+?ICE	The character CTRL/E is not permitted within a search string.
+	This character is reserved for special use in future versions
+	of TECO-8.  Note that the presence of a "^E" in the string
+	printout within the ?SRH error message denotes the presence
+	of one of the special match control constructs, CTRL/N, CTRL/X,
+	or CTRL/S.
+?NAB	The one's complement command ^_ was used without a numeric
+	argument.  The form of the command is n^_ and the command
+	returns the one's complement of the argument n.
+	^_ is not a unary operator and must be used after a numeric
+	argument (not before it).
+?UE_	The commands EA, EI, EL, EM, EN, EP, EV, and EZ are not
+	implemented in TECO-8.  The only legal E commands are
+
+	EBfilespec$	Edit Backup
+	EC		closes output file after moving across input
+	EF		closes output file
+	EG$		performs EX then re-executes last compile class cmd
+	EGcommand$	performs EX then executes command specified
+	EK		kills output file
+	ERfilespec$	Opens file for input
+	EWfilespec$	Opens file for output
+	EX		moves across input to output file, then closes it
+			and exits TECO
+	EY		unprotected Y command
+
+	The following commands are valid flags: ED, EH, EJ, EO, ES, ET and EU.

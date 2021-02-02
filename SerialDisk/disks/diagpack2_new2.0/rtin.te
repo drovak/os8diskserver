@@ -1,0 +1,41 @@
+J:S."FZJ@I/.DI/! Force .DI ext
+!HXA! name into Q-reg. A
+!HKGY!get macro!J2SFILE-4DGA! insert file name
+!J2SSTART!0,.K! remove setup
+!@I/HKXY/!
+!HX1M1!
+!!START!^AEnter desired extension:!
+!!INLOOP!^TI-1A-13"EOENDIN'! ext done
+!-1A-127"E!rubout!.-1"NRD.-1,.TRD'OINLOOP'!delete it
+!OINLOOP! not special
+!!ENDIN!^A
+-DHXA! store ext in Q-reg. A
+!HKEnter output device name:!
+!!DEVLOOP!^TI-1A-13"EOALLDONE'! device dOne.
+!-1A-127"E!rub!.-1"NRD.-1,.TRD'ODEVLOOP' !echo deleted and loop
+!ODEVLOOP! leave this in buffer
+!!ALLDONE!^A
+-DHXG! store device name
+!HKERFILE!open input file!EWTECBAT.TM!open batch stream output
+!2UF!Set up line ctr!@I/$JOB
+.R#RTFLOP
+/!MORE!A! get input & count lines
+!1UB!   line counter
+!!FINDEND!LZ-."EOENDBUF'!
+!1%BOFINDEND!
+!!ENDBUF!0TT!
+!0JQFLQB<.UEL.UC!
+!-L:S."FQEJKOENDPACK'! a valid line has a . (before ext)
+!.-QC">QEJKoENDPACK'! delete lines without .'s
+!QEJ.,.+6XD! put file name in Q-reg. D
+!0L@I/*/GGGD@I/./GA! build "*name.ext"
+!@I/</10C! insert "<" then skip name
+!@I&/I&! insert /I switch
+!K@I/
+/!ENDPACK!>J<@FS/ //>J<@FS/#/ />! kill blanks
+!^N"EHPWHK0UFOMORE'! work on rest of file
+!ZJ@I/*$
+.DELETE TECBAT.TM
+$END
+/EGSUB TECBAT.TM/T! close out and start batch file
+!

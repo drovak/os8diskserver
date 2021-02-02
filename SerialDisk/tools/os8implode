@@ -1,0 +1,149 @@
+#!/usr/bin/perl
+# 
+# Copyright © 2015-2020 by Vincent Slyngstad
+# 
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS LISTED ABOVE BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# 
+# Except as contained in this notice, the names of the authors above
+# shall not be used in advertising or otherwise to promote the sale, use
+# or other dealings in this Software without prior written authorization
+# from those authors.
+
+#
+# Given a set of directories, assemble a .xml
+# file for those whose names make them eligible 
+# for inclusion in an OS/8 volume.
+#
+
+# For now, build a RK05/SerialDisk sized volume.
+
+# Given a directory, are all the bits available 
+# to make it a system volume?
+sub isSystem {
+    local($d) = $_[0];
+    # Every volume needs these, and we've no default boot loader.
+    die "$d/.boot" unless -f "$d/.boot" && (384 == -s "$d/.boot");
+    die "$d/.dir" unless -f "$d/.dir";
+    # Not a system volume unless .kmon exits.
+    return 0 unless -f "$d/.kmon" && (1536 == -s "$d/.kmon");
+    # Trying to be a system volume, check other requirements.
+    die "$d/.usr" unless -f "$d/.usr" && (1152 == -s "$d/.usr");
+    die "$d/.dhand" unless -f "$d/.dhand" && (3072 == -s "$d/.dhand");
+    die "$d/.end" unless -f "$d/.ent" && (384 == -s "$d/.ent");
+    die "$d/.sblks" unless -f "$d/.sblks" && (6912 == -s "$d/.sblks");
+    die "$d/.cdec" unless -f "$d/.cdec" && (1152 == -s "$d/.cdec");
+    die "$d/.sdate" unless -f "$d/.sdate" && (768 == -s "$d/.sdate");
+    die "$d/.merr" unless -f "$d/.merr" && (384 == -s "$d/.merr");
+    die "$d/.chain" unless -f "$d/.chain" && (384 == -s "$d/.chain");
+    die "$d/.sodt" unless -f "$d/.sodt" && (1536 == -s "$d/.sodt");
+    die "$d/.rsvd" unless -f "$d/.rsvd" && (384 == -s "$d/.rsvd");
+    die "$d/.cclr" unless -f "$d/.cclr" && (384 == -s "$d/.cclr");
+    die "$d/.td8e" unless -f "$d/.td8e" && (384 == -s "$d/.td8e");
+    return 1;
+}
+
+# Given a directory, make a sorted list of files 
+# suitable for inclusion.
+sub getdir {
+    local(%dir) = ();
+    opendir(DIR, "$_[0]") || die "$_[0]: $!";
+    foreach $f (readdir(DIR)) {
+        $f =~ y/A-Z/a-z/;
+        next unless $f =~ /^[a-z0-9]{1,6}([.][a-z0-9]?[a-z0-9]?)?$/;
+        die "Upper/lower case collision on $_[0]/$f" if defined $dir{$f};
+        $dir{$f} = 1;
+    }
+    return sort keys %dir;
+}
+
+# Emit the .xml for the proposed directory.
+sub copyout {
+    local($sblk, $d, @dir) = @_;
+    local($f, $size, $end);
+
+    foreach $f (@dir) {
+        # Figure out whether the extension indicates a binary.
+        # BUGBUG: These rules are different than ox8explode.
+        $ext = $f; $ext =~ s/^.*[.]//;
+        $mode = "text";
+        $mode = "binary" if $ext eq "sv";
+        $mode = "binary" if $ext eq "lo";
+        $mode = "binary" if $ext eq "hi";
+        $mode = "binary" if $ext eq "rl";
+        $mode = "binary" if $ext eq "bn";
+        # BUGBUG: Need case insensitive lookup!
+        $size = -s "$d/$f";
+        die "$d/$f not integer blocksize: $size\n" if ($mode eq "binary") && ($size % 384);
+        $size = int(($size + 383) / 384);
+        $end = $sblk + $size - 1;
+        die "Too may blocks for $d: $f" if $end >= 06260;
+        printf XML "<file name='$d/$f' start=0%o end=0%o mode=$mode></file>\n", $sblk, $end;
+        $sblk = $end + 1;
+    }
+    # Emit an empty for the remaining space, if any.
+    return if $sblk == 06260;
+    $end = 06260 - 1;
+    printf XML "<file name='$d/.$sblk' start=0%o end=0%o mode=binary></file>\n", $sblk, $end;
+}
+
+sub bplate {
+    local($d) = $_[0];
+    print XML "<file name='$d/.boot' start=00 end=00 mode=binary></file>\n";
+    return unless $sysfs;
+    print XML "<file name='$d/.dir' start=01 end=06 mode=binary></file>\n";
+    print XML "<file name='$d/.kmon' start=07 end=012 mode=binary></file>\n";
+    print XML "<file name='$d/.usr' start=013 end=015 mode=binary></file>\n";
+    print XML "<file name='$d/.dhand' start=016 end=025 mode=binary></file>\n";
+    print XML "<file name='$d/.ent' start=026 end=026 mode=binary></file>\n";
+    print XML "<file name='$d/.sblks' start=027 end=050 mode=binary></file>\n";
+    print XML "<file name='$d/.cdec' start=051 end=053 mode=binary></file>\n";
+    print XML "<file name='$d/.sdate' start=054 end=055 mode=binary></file>\n";
+    print XML "<file name='$d/.merr' start=056 end=056 mode=binary></file>\n";
+    print XML "<file name='$d/.chain' start=057 end=057 mode=binary></file>\n";
+    print XML "<file name='$d/.sodt' start=060 end=063 mode=binary></file>\n";
+    print XML "<file name='$d/.rsvd' start=064 end=064 mode=binary></file>\n";
+    print XML "<file name='$d/.cclr' start=065 end=065 mode=binary></file>\n";
+    print XML "<file name='$d/.td8e' start=066 end=066 mode=binary></file>\n";
+    print XML "<file name='$d/.cclo' start=067 end=067 mode=binary></file>\n";
+}
+
+foreach $d (@ARGV) {
+    $f =~ s/.xml$//; $f =~ s/.[0-9]$//;
+    open(XML, ">$d.xml+") || die "$d.xml+: $!";
+    print XML "<image name='$d.new' size=014540>\n";
+    print XML "<os8fs name='$d.0' base=00 size=06260>\n";
+    # BUGBUG: Should rather loop here, instead of exactly twice.
+    $sysfs = &isSystem("$d.0");
+    @dir = &getdir("$d.0");
+    print XML "<directory>\n";
+    &copyout($sysfs? 070 : 07, "$d.0", @dir);
+    print XML "</directory>\n";
+    &bplate("$d.0");
+    print XML "</os8fs>\n";
+    print XML "<os8fs name='$d.1' base=06260 size=06260>\n";
+    $sysfs = &isSystem("$d.1");
+    @dir = &getdir("$d.1");
+    print XML "<directory>\n";
+    &copyout($sysfs? 070 : 07, "$d.1", @dir);
+    print XML "</directory>\n";
+    &bplate("$d.1");
+    print XML "</os8fs>\n";
+    print XML "</image>\n";
+}

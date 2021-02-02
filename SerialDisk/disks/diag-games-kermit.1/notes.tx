@@ -1,0 +1,93 @@
+
+
+
+
+                NN        NN  OOOOOOOOOOOO  TTTTTTTTTTTT  EEEEEEEEEEEE   SSSSSSSSSS   
+                NNN       NN  OOOOOOOOOOOO  TTTTTTTTTTTT  EEEEEEEEEEEE  SSSSSSSSSSSS  
+                NNNN      NN  OO        OO       TT       EE            SS        SS  
+                NN NN     NN  OO        OO       TT       EE            SS            
+                NN  NN    NN  OO        OO       TT       EE            SSS           
+                NN   NN   NN  OO        OO       TT       EEEEEEEEE      SSSSSSSSS    
+                NN    NN  NN  OO        OO       TT       EEEEEEEEE       SSSSSSSSS   
+                NN     NN NN  OO        OO       TT       EE                     SSS  
+                NN      NNNN  OO        OO       TT       EE                      SS  
+                NN       NNN  OO        OO       TT       EE            SS        SS  
+                NN        NN  OOOOOOOOOOOO       TT       EEEEEEEEEEEE  SSSSSSSSSSSS  
+                NN         N  OOOOOOOOOOOO       TT       EEEEEEEEEEEE   SSSSSSSSSS   
+
+
+
+
+			FOR RELEASE VERSION  8.03
+
+
+
+
+	1)	THESE FILES ARE LOCATED ON THE DIAGNOSTIC PACK AS TEXT
+		".TX" FILES AND CAN BE LISTED INDIVIDUALLY BY TYPING:
+
+			.LIST RKB0:FILE.TX	(WHERE  "FILE"  IS THE TEXT
+						 FILE YOU WISH TO LIST )
+
+		OR AS A GROUP BY
+
+			.SU BOOK
+
+
+	2)	IT IS IMPERATIVE THAT THE USERS OF THIS DIAGNOSTIC SYSTEM FULLY
+		UNDERSTAND THAT THIS SERVICE TO YOU HAS BEEN PROVIDED BY THE
+		NEW ENGLAND DISTRICT SUPPORT TEAM AND IS NOT TO BE CONSTRUED AS A
+		COMMITMENT TO THE CONTINUAL SUPPORT OF THE SYSTEM. IT IS A
+		CONVIENENCE ONLY AND IS NOT MEANT AS A REPLACEMENT FOR NORMAL
+		DEC DIAGNOSTIC PROCEDURES.
+
+
+
+
+	3)	REMEMBER THAT NEW RELEASES OF DIAGNOSTICS ARE ALWAYS COMING
+		OUT. WE TRY TO GET THE LATEST PATCHES ON THE PACK WHEN IT IS
+		CREATED, BUT THE ULTIMATE RESPONSIBILITY FOR KEEPING YOUR PACK
+		UP TO DATE IS YOURS !
+
+
+	4)	PROBLEMS - CALL RICH MOORE, NEW ENGLAND DISTRICT SUPPORT
+		IN WALTHAM, MASS		(CURRENTLY AT X410)
+		WE'LL TRY TO HELP.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

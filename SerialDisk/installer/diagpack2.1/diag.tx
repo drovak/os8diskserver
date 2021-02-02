@@ -1,0 +1,961 @@
+
+
+
+
+
+
+
+
+               FIELD  SERVICE  SOFTWARE  ASSISTANCE  BROCHURE
+
+
+
+
+
+
+
+
+
+
+
+                          The New England District
+
+
+
+                         PDP-8  DIAGNOSTIC  SYSTEM
+
+
+
+
+                                 Version 5
+
+
+
+                                 March 1981
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                               Developed by:
+
+
+
+                                 Rick Moore
+
+
+         This document describes the
+
+
+
+
+
+                 FIELD  SERVICE  PDP-8  DIAGNOSTIC  SYSTEM
+
+
+
+
+
+         developed by the 12 Bit Group of New England District Support.
+
+
+
+
+
+
+
+         It is imperative that users of this system fully  understand  that
+
+         this service is provided by the New England District Support  Team
+
+         and is not to be  construed  as  a  commitment  to  the  continual
+
+         support of the system. It is a convienence only and in no  way  is
+
+         meant to be a replacement for normal DEC diagnostic procedures.
+
+
+
+         Please remember that new diagnostics are  always  being  released.
+
+         When the packs are created, the latest versions are included,  but
+
+         the ultimate responsibility for keeping your pack up  to  date  is
+
+         yours.
+
+
+
+         A special thanks is extended to Dick Murphy of Western Region
+
+         Software Support for his contributions to this latest version of
+
+         the  Diagnostic  System.  Dick  wrote  several  of  the  utilities
+
+         included such as the modified version of  CCL,  RXREAD,  the  RKB0
+
+         System Device handler that is  bootable,  the  RX01/02  compatable
+
+         floppy handlers, the BYTE mode handlers, and  developed  the  disk
+
+         recovery techniques described herein.
+
+
+    SYSTEM OVERVIEW
+
+
+
+         This Diagnostic System is essentially an OS-8 system. It has  been
+    slightly modified; special utilities have been added; it  has  features
+    designed to assist the Field Service Engineer; it  contains  diagnostic
+    tools; it has customized batch streams to manipulate files; and  it  is
+    extensively documented; but it remains, never-the-less, OS-8.  Most  of
+    the rules that pertain to OS-8 apply to this system as well.
+
+
+         If you are at all familiar with OS-8 and DECX8 as they  come  from
+    the SDC, a glance at the system directory shows  some  disparities.  In
+    particular, notice that the extensions ".DG", ".BX", ".BH", ".SY",  and
+    ".X8" are different. During the development  of  this  system,  it  was
+    decided to leave  as  much  of  the  file  manipulation  required  when
+    creating systems on  various  media  to  "Batch  Streams",  a  computer
+    controlled process. There was a need to identify the various  types  of
+    files to this process, therefore  all  diagnostics,  which  are  really
+    files in  image  format  (.SV)  are  given  the  extension  ".DG".  The
+    consequences of renaming all ".DG" files to ".SV" would be the loss  of
+    this batch ability. Renaming all ".BX" files to the standard ".BN"  (as
+    they are really binary format files) would  cause  even  more  problems
+    since DECX8 has been modified to  accept  this  default  extension.  In
+    fact, the program DECX8.SV that appears on this system  is  a  modified
+    version in that it allows building on a PDP-8A or VT-78 with no  switch
+    register. Descriptions of other system conventions appear later in this
+    text.
+
+
+         There are two companion documents to this text; one concerning the
+    building and use  of  DECX8,  and  another  which  addresses  the  OS-8
+    operating system in more detail. Both of these documents list  specific
+    DEC publications which  may  be  referenced  if  even  more  detail  is
+    desired.
+
+
+         At this time, it must be understood  that  OS-8  is  an  operating
+    system that Digital sells for a considerable amount of money. It is not
+    in our best interest, therefore, to leave copies of  it  laying  around
+    customer sites for free. Besides, this system  has  been  modified  and
+    contains many utility programs that are not supported  by  Digital.  In
+    addition, the monitor and CUSPs (ie: PIP,FOTP,BATCH,etc)  are  the  DEK
+    versions that are distributed with the Device  Extension  Kit  for  the
+    KT8A and memory above 32K. Were these to be mixed with the original V3D
+    components that most customers  run,  the  resulting  operating  system
+    would experience failures due to version incompatability. If  you  feel
+    the urge to leave a Diagnostic Pack on a  customer  site,  be  sure  to
+    create one using the command:
+
+
+                   .SUB CUSPAK
+
+
+    This batch stream will create a bare bones copy of your pack with  only
+    the monitor, basic utilities, and diagnostics on it. DO NOT use any  of
+    the copy utilities to make a site pack!
+BOOTING the SYSTEM
+
+
+    This system can be booted via  the  regular  OS-8  bootstraps  for  the
+    appropriate media. For the RK05, additional  bootstraps  are  available
+    that allow booting to any drive; "A" or "B" area. These are:
+
+
+
+       Normal                Any Drive            "B" area
+       ______                _________            ________
+
+
+    30/  6743                25/  7604           27/  1032
+         5031                     6746                6743
+                                  6743                5031
+                                  7604                6260
+                                  5031
+
+
+                   put drive # in SR bits 9,10
+
+
+    In addition, there is a program called "RKBOOT" that will allow any
+    combination of the above to be run. For example:
+
+
+              .R RKBOOT/ [dev]
+
+              where [dev] can be
+
+              0  =  RKA0
+              B  =  RKB0
+              1  =  RKA1
+              1B =  RKB1
+
+
+
+    When the system is initially booted, it may display a  message  on  the
+    terminal that highlights some of  the  features  of  the  system.  This
+    feature is of importance to new  users  only  and  after  a  degree  of
+    comfort with the system is gained, the user may  disable  it.  This  is
+    accomplished by issuing the commands:
+
+
+              .SET SYS INIT HELP       -    enables startup message
+
+              .SET SYS NO INIT         -    dissables message
+
+
+    Regardless of the setting, the message may be printed at any time by
+    typing:
+
+
+              .HELP
+
+
+    and more information may be gained by asking for:
+
+
+              .HELP INFO      and/or      .HELP MORE
+    LOADING DIAGNOSTICS
+
+
+
+    The main purpose of this system is to provide a means  of  loading  and
+    running diagnostic programs that are located on the distribution  media
+    (disk, diskette, or DECtape).  All  diagnostics  are  identified  by  a
+    unique six character (ie: DHRKCH) Maindec  name  and  a  two  character
+    extension.  This  system  uses  the  extension  ".DG"  to  identify   a
+    diagnostic program.
+
+    Most of the more commonly used diagnostics are located on the "SYS:" or
+    "RKA0:" area of the disk, although some of the more  infrequently  used
+    ones are on the "RKB0:" area.
+
+
+
+         To run a diagnostic, type:
+
+
+
+              .R PROG.DG               where "PROG" is the name of a
+                                       diagnostic to be run from "SYS:"
+
+                 - or -
+
+
+          .RUN RKB0: PROG.DG           runs one from "RKB0:"
+
+
+
+         For example, to run the RK8E Data Reliability test:
+
+
+              .R DHRKCH.DG
+
+
+
+
+         To run the CM8F Card Reader Test (which is on RKB0:)
+
+
+              .RUN RKB0:DHCMAA.DG
+
+
+
+
+    NOTE:     The OS-8 system accepts input in UPPER CASE only. Be
+              sure that the "CAPS LOCK" key on the terminal is
+              depressed.
+    RUNNING DIAGNOSTICS
+
+
+
+
+    Once a diagnostic has been loaded, it will run normally,or as though it
+    had been loaded via paper tape. It should be be noted that many (indeed
+    most) of the newer  diagnostics  have  been  ammended  to  implement  a
+    "Software Switch Register" for the benefit of those systems  that  have
+    no front panel switch register such as the PDP-8A  and  the  VT-78.  In
+    these cases, the program will identify itself, then print:
+
+                   SR = 0000
+
+    and wait for the operator to input the desired switch  register  value.
+    On these diagnostics, it is possible to enable or disable this  feature
+    by altering the contents of the following two locations:
+
+
+         Loc            Software            Hardware
+         ___            ________            ________
+
+         21               0000                4000
+         22               0400                0000
+
+
+
+    These alterations may be made by using either the front panel  switches
+    if the processor is a PDP-8E, etc. or ODT if not. For more  information
+    on ODT, see the section on Advanced Techniques.
+
+
+
+
+
+
+    ADDING NEW DIAGNOSTICS to the SYSTEM
+
+
+
+         Place the new paper tape diagnostic in the PC04, then type:
+
+
+              .LOAD PTR:
+              ^                             type a <CR>
+
+              .SAVE SYS: PROG.DG            where "PROG" is a six character
+                                            name followed by a ".DG" ext.
+
+
+
+              this new diagnostic can now be run by typing:
+
+
+              .R PROG.DG
+    HELP FILES
+
+
+
+
+    This system has a file of  "Help"  messages  that  pertain  to  various
+    programs, procedures, and diagnostics. This feature is used by typing:
+
+
+
+              .HELP [foo]              where "foo" is the name of the file,
+                                       program, diagnostic, or procedure
+                                       for which you desire help.
+
+
+    For example:
+
+
+              .HELP                    types the startup message
+
+              .HELP INFO               gives more system information
+
+              .HELP FUTIL              tells about the File UTILity program
+
+              .HELP RK05               lists available RK05 diagnostics
+
+              .HELP DIAG               lists all diagnostics on the system
+
+
+
+
+    The default output of HELP is to the terminal but can be sent to
+    whichever printer is defined as "LPT:" by typing:
+
+
+              .HELP [foo] - L
+
+
+
+
+    For example:
+
+
+              .HELP DIAG - L           lists all the available diagnostics
+                                       on the line printer.
+    LISTING DIRECTORIES
+
+
+    To list a directory, type:
+
+
+         .DIR
+          or                 to list the directory of the "SYS:" device
+         .UA
+
+
+         .DIR RKB0:
+          or                 to list the directory of "RKB0:"
+         .UB
+
+
+         .DIR - L            prints the directory of "SYS:" on the printer
+
+
+         .DIR /E=4 - L       prints same but in 4 columns across the page
+
+
+         .DIR RKB0:/E=4-L    etc., etc.
+
+
+
+
+    BATCH STREAMS
+
+
+    The "Batch Streams" that are located on the system allow  the  user  to
+    perform  complicated  file  manipulation  without   knowing   all   the
+    neccessary commands for "PIP" and "FOTP".  They  are  accessed  by  the
+    "SUBmit" command and are:
+
+
+         .SUB CUSPAK         to make a customer site diagnostic system
+
+         .SUB RLPACK         makes an RL01 diagnostic system
+
+         .SUB FLOP1          a diagnostic diskette for VT78, 8A, 8E CPUs
+
+         .SUB FLOP2          a diagnostic diskette for RX01/2, RK05, RL01/2
+
+         .SUB FLOP3          a diagnostic diskette for VTs, LAs, LPs, etc.
+
+         .SUB FLOPX8         the DECX8 builder diskette
+
+         .SUB TC08DG         a TC08 diagnostic DECtape
+
+         .SUB TC08X8         a TC08 DECX8 system
+
+         .SUB TD8EDG         a TD8E diagnostic DECtape
+
+         .SUB TD8EX8         a TD8E DECX8 system
+
+
+    These files can be identified on the system by the ".BI" extension. The
+    floppies are made using the BYTE mode handler for more space,  although
+    this is transparent to the user. You MUST have the system device "WRITE
+    ENABLED" to run Batch !
+    SYSTEM CONVENTIONS
+
+
+
+         Extensions:
+
+              .SV       -    system programs
+              .BN       -    binary files
+              .BH       -    binary handlers for BUILD
+              .DG       -    diagnostic programs
+              .SY       -    system heads
+              .HN       -    compiled device handlers for .SET HANDLER
+              .BI       -    batch control files
+              .HL       -    "help" files
+              .TX       -    text files
+              .BX       -    DECX8 builder modules
+              .X8       -    customized DECX8 system exercisers
+              .BA       -    Basic source files
+
+
+         Devices:
+
+              SYS:      -    the system device, also usually called
+              DSK:      -    the default device; in the case of this pack
+              RKA0:     -    the "A" area of RK05 Drive 0
+              RKB0:     -    the "B" area of RK05 Drive 0
+              RKA1:     -    the "A" area of RK05 Drive 1, etc.
+
+              RL0A:     -    the "A" area of RL01 Drive 0
+              RL0B:     -    the "B" area of RL01 Drive 0
+
+              RXA0:     -    RX01/2 Drive 0
+              RXA1:     -    RX01/2 Drive 1
+              RXB0:     -    RX01/2 BYTE mode Drive 0
+
+              DTA0:     -    DECtape Drive 0 for TD8E or TC08
+              DTA1:     -    DECtape Drive 1 for TD8E or TC08
+              PTR:      -    PC04 reader
+              PTP:      -    PC04 punch
+              TTY:      -    the console terminal
+              LPT:      -    the LP05, LA180, LQP8 line printers
+
+
+
+    Some of these devices are initially enabled on the system  when  it  is
+    created. However, by using the  program  "BUILD",  the  system  may  be
+    tailored to fit your particular hardware environment. Your attention is
+    called to the section on SYSTEM  CONFIGURATION  before  attempting  any
+    such action.
+
+    Notice that handlers for both the  LA180  and  LQP  type  printers  are
+    called "LPT:" and TC08 and TD8E DECtapes are called "DTA0:".  There are
+    also two types of floppy handlers.  These  different  types  cannot  be
+    co-resident.  The  "SET  HANDLER"  command  allows  swapping  of  these
+    handlers without going through the build process. More  information  on
+    this is in the section on SYSTEM CONFIGURATION.
+
+    All of the standard DEC handlers for all supported devices are included
+    on the "RKB0:" area of the disk and can be added if  the  need  arises.
+    Examples of these are the RL01, RF08, and Card Reader handlers.
+    USEFUL UTILITIES
+
+
+    Some of the more useful utility programs that exist  for  your  benefit
+    are:
+
+
+    RXREAD.SV      -    This program will allow you to check for  defective
+                        floppys. It can be a big help in a "System vs.  Bad
+                        Diskette" situation. When the program encounters  a
+                        bad block, it  prints  out  the  error  in  a  very
+                        definitive manner and even  allows  for  a  limited
+                        correction attempt. Before attempting to correct  a
+                        bad block on a customer's diskette, BE SURE to  get
+                        his approval! A successful recovery may not fix bad
+                        data, but at least the bad data can be read by  the
+                        operating system and the  diskette  copy  utilities
+                        will work again. More info on this utility  can  be
+                        gained by typing "HELP RXREAD".
+
+    RKCOPY.SV      -    A disk copy utility that  copies  between  any  two
+                        drives and verifies  the  copy.  Since  this  is  a
+                        sector by sector image copy, it can be used to copy
+                        any PDP-8 operating system such as OS8, Typeset, or
+                        COS300. Total time to copy and verify is less  than
+                        90 seconds.
+
+    RKUTIL.SV      -    This program is  a  very  good  RK05  utility  that
+                        allows  you  to  format,  read  check,  copy  (with
+                        verify), and run a 8 pattern disk  confidence  test
+                        (much like  RSTS/E   DSKINT).  The  later  test  is
+                        especially adapt at finding weak disks that  format
+                        or  copy  with  no  errors.  There  are  also  disk
+                        alignment routines, but a much  more  comprehensive
+                        program exists for that purpose called ...
+
+    ALIGNX.DG      -    This program is  an  RK05  Alignment  Utility  that
+                        allows the user,  via  either  the  hardware  front
+                        panel switches, or a "software switch register"  to
+                        completely align an RK05 Disk Drive. It  will  work
+                        with either an RK8E Controller (up to 4 drives)  or
+                        the CSS RKS8E Controller (up to 8 drives). A simple
+                        one word patch  defines  the  controller  which  is
+                        defaulted to the  RK8E.  More  info  on  ALIGNX  is
+                        available  by  listing  the  file  on  RKB0  called
+                        "ALIGN.TX". This documents a step by step alignment
+                        procedure developed by  the  New  England  District
+                        Support group.
+
+    CONVRT.SV      -    This is an "un-saver"  program  that  makes  Binary
+                        Paper tapes from ".SV" or ".DG" programs. The  most
+                        common use of this would be to make a paper tape of
+                        a diagnostic to take to a site  that  has  no  mass
+                        storage media. The tape  can  be  read  in  with  a
+                        PMK-01 reader using  Binary  Loader.  Although  the
+                        High Speed Punch is the  default  output  for  this
+                        program, it responds to any legal  Command  Decoder
+                        line. "HELP CONVRT" will get you more info.
+    ADVANCED TECHNIQUES
+
+
+
+    The information in this section is intended for advanced users of OS-8.
+    It is not neccessary to  be  familiar  with  any  of  it  in  order  to
+    successfully utilize  the  Diagnostic  System  as  it  is  distributed.
+    However, anyone desiring to increase their OS-8 skills is encouraged to
+    experiment; it is the best way of learning. It would be a wise idea  to
+    back your system up by using either "RKCOPY" or program 0  of  "RKUTIL"
+    before attempting any experimentation since most of  this  information,
+    if improperly applied, can be fatal to the system!
+
+
+
+
+    First, we should clear up some fine points on the "R", "RUN", and "GET"
+    commands.
+
+
+    Associated with each memory image file (.SV or .DG) is a block of  data
+    called the Core Control Block or CCB. The CCB is a table of information
+    containing the program's starting address, areas of memory  into  which
+    the program is to be loaded, and the programs Job Status Word  or  JSW.
+    The JSW contains certain flags that affect OS-8 operations  which,  for
+    the purposes of this discussion, are  irrelevant.  When  a  program  is
+    loaded, the starting address and JSW are read from the CCB and saved in
+    memory. The CCB itself is saved in the last 200 (octal) words of  block
+    37  on  the  system  device  unless the program was loaded with the "R"
+    command (as opposed to the "RUN" or "GET" commands).  This  is  a  very
+    important distinction that becomes apparent when we get to the  section
+    on "BUILD". Remember, "RUN" and "GET" save the CCB, "R" does not.  This
+    is because the purpose  of  the  "R"  command  is  to  load  and  start
+    execution of a program on the system device, not to  alter  it  in  any
+    way.
+
+
+    ALTERING PROGRAMS   (ODT)
+
+
+
+    The Octal Debugging Technique or ODT is a means in which  temporary  or
+    permanent "patches" or alterations can be inserted into a program.  One
+    use of this could be to enable the software switch register  option  in
+    some diagnostics. It can also be used to type in a  short  "toggle  in"
+    routine on a system that has no front panel switches.
+
+
+    Example:  Enable the software switch register on DHRKCH.DG
+
+
+
+         .GET SYS DHRKCH.DG       -    first we must have a runable copy of
+                                       the desired program in memory
+
+         .ODT                     -    involk ODT
+
+         21/  4000 0000           -    change location 21 from 4000 to 0000
+                                       (note that the computer prints out
+                                       the "old" value and waits for the
+                                       "new" value to be typed in.)
+
+         22/  0400 0000           -    change 22 from 0400 to 0000
+
+         ^C                       -    type a <CTRL> C
+
+         .SAVE SYS DHRKCH.DG      -    resave the program
+
+
+
+
+
+    However, it is not neccessary to resave the program in order to run it
+    if the patch is temporary. Before typing the <CTRL> C :
+
+
+         200G                     -    starts execution of the program at
+                                       location 200
+
+
+
+    This is just one of many possible uses of ODT. For a complete
+    description of the Octal Debugging Technique, see the OS-8 System
+    Reference Manual (AA-H607A-TA), Chapter 19.
+
+
+
+    SYSTEM CONFIGURATION          (BUILD and SET HANDLER)
+
+
+    BUILD is the system generation program that allows you  to  use  simple
+    commands to manipulate the  device  handlers  that  make  up  the  OS-8
+    peripheral configuration. Before starting to use BUILD, make sure  that
+    the system is write enabled and that ".SET SYS NO INIT" is in force.
+
+
+         .RUN SYS BUILD                starts the build process. Note the
+                                       use of the "RUN" command. This
+                                       allows resaving later.
+
+         $                             the "$" is BUILD's prompt character
+
+
+
+                        at this time, execute any of the BUILD
+                        commands neccessary to reconfigure the
+                        system, then type:
+
+
+
+         $BOOT                         to reboot the system with the new
+                                       handlers active. The system responds
+
+         SYSTEM BUILT
+
+         .                             and you are back in the monitor.
+
+
+    At this time, it is possible to run and the new handlers will  stay  in
+    force until the next time BUILD is run. The  present  configuration  of
+    BUILD may be saved by typing immediately upon return to monitor:
+
+         .SAVE SYS BUILD
+
+
+    Some of the commands that may be used to change the system
+    configuration are:
+
+
+
+         ALter          -    patches locations in a handler
+
+         BOot           -    reboots the new monitor to the system device
+
+         DElete         -    deactivates a handler
+
+         DSK =          -    specifies the default device (usually = SYS)
+
+         INsert         -    activates a handler
+
+         LOad           -    loads a binary handler module from a device
+
+         PRint          -    lists all handlers presently LOaded into BUILD
+
+         UNload         -    removes a loaded handler from BUILD
+
+         NAme           -    changes name of a device type
+
+
+
+
+
+
+    All of the device handlers supplied with OS-8 are located on RKB0:  and
+    may be LOaded into BUILD and then INserted. However,  only  15  devices
+    may be active at any one time,  so  it  may  be  neccessary  to  DElete
+    something in order to have room.
+
+    While BUILD must be run whenever you wish to change the system  device,
+    it is now possible to swap handlers without  going  through  the  build
+    procedure. The "SET HANDLER" command allows substitution of  non-system
+    device handlers within the monitor. The command is of the form:
+
+
+         .SET HANDLER [old name] = [new name]
+
+    for example
+
+         .SET HANDLER LPT = LQP
+
+
+
+    changes the device name "LPT:" to reference the LQP8 printer instead of
+    the LA180/LP05 printer. It is now possible to  get  output  such  as  a
+    directory listing or a  HELP  file  directly  on  the  LQP  printer  by
+    involking the "- L" switch. For example:
+
+
+         .DIR - L       (or)      .HELP  [foo] - L
+
+
+    To restore the system to its original state:
+
+
+         .SET HANDLER LQP = LPT
+
+
+
+    Other handler pairs that are available in this system are:
+
+
+         FLOP (RX01/2)       and       BYTE  (special floppy handler)
+
+         TD8E                and       TC08   DECtape controllers
+
+         LPT  (LP05)         and       LQP   (LQP8) printers
+
+
+
+
+
+    The program "RESORC" will tell you which handlers are  active  in  your
+    system at any time. This program is accessed with the ".RES" command.
+
+
+
+    For more information on BUILD, read the OS-8  System  Reference  Manual
+    (AA-H607A-TA), Chapter 9.
+
+
+
+    FLOPPY "BYTE MODE" HANDLERS
+
+
+    The diagnostic floppies use a special "BYTE Mode" handler  that  allows
+    over 600 blocks of data on the diskette (as opposed to the normal 494).
+    These floppies run on the standard hardware with no modifications,  but
+    there are some differences that the user should be aware of.
+
+
+    When the "BYTE" handlers are resident, these floppies are addressed  as
+    "RXB0:" and "RXB1:"  instead of "RXA0:" and "RXB0:".  Naturally,  there
+    is an exception to this rule. The  program  RXCOPY  and  the  DUPLicate
+    command have their own internal parsing and require the use of RXA0 and
+    RXA1 exclusively. Don't  let  this  worry  you,  it  copies  BYTE  mode
+    floppies just fine!
+
+
+    If you are merely running the BYTE mode diskettes as the booted  system
+    device and running diagnostics or  games  from  drive  0,  the  special
+    handler is completely transparent to the  operation.  Just  ignore  the
+    fact that it exists. This is the case  for  95%  of  the  applications.
+    However, if you are trying to use BUILD to create such a diskette,  you
+    must first run the BUILD program, BOot to the new system device, run  a
+    special RXFIX program, and then proceed as normal. RXFIX  must  be  run
+    again before BUILD can be run again from that diskette. If all of  this
+    seems confusing, think of RXFIX as a software flip-flop; it is  flipped
+    to become a bootable medium and flopped to enable BUILD to run. If  you
+    don't ever intend to create your own BYTE mode diskettes,  just  forget
+    about the whole thing, use the preconfigured diskettes, and be thankful
+    for the extra space! By the way, the "FLOP" Batch streams  that  create
+    the diagnostic diskettes use this method,  so  interested  parties  can
+    examine them to help decipher the technique.
+
+
+    PACK RECONSTRUCTION TECHNIQUES
+
+
+    The remainder of this text addresses means  of  recovering  from  fatal
+    "pack crashes". Since most "crashes" or "wiped out packs"  result  from
+    either faulty  hardware  (we  work  on  a  lot  of  that!)  or  amateur
+    programming efforts, it is  possible  with  a  degree  of  housekeeping
+    disipline, to protect the pack from total fatality.
+
+    Most hardware failures occur when the pack is loaded on  a  bad  system
+    and booted. Since the drive loads the heads onto cylinder  0,  this  is
+    usually the damaged area. Cylinder 0 contains 40 (octal) blocks (of 256
+    words) which contain the device bootstrap, the RKA0 directory, and most
+    of the OS-8 monitor (of 70 blocks). Therefore, if there were a  way  to
+    replace the monitor and the directory, the pack could be salvaged.  The
+    following technique, once understood, can be used to reconstruct "wiped
+    out" systems. Rememeber also that this involves  a  certain  amount  of
+    periodic housekeeping chores in order to be effective.
+
+
+
+    RECOVERING the SYSTEM HEAD
+
+
+    There  are  several  files  located  on  the  system  that  have  ".SY"
+    extensions. These are copies of the  OS-8  monitor  areas  for  various
+    devices. For example, the system area for RKA0 is "RK8EA.SY" and for  a
+    floppy is "RX8E.SY". These files were created with "PIP" option /Y  and
+    can be replaced in a similiar manner. If a system area were  to  become
+    corrupted, but the disk could somehow be accessed, it would be possible
+    to recopy a new sytem area onto it. To do this:
+
+
+         .R PIP
+         *RKA0:<RK8EA.SY/Y/Z           copies a new system area onto RKA0:
+                                       and creates a zeroed directory
+
+
+
+
+    RECOVERING the DIRECTORY
+
+
+    There is a program on the system called "QUIT" which will create a copy
+    of the RKA0:  directory  and  store  it  as  a  file  on  RKB0:  called
+    "DIRECT.TS". Since RKB0: has a bootable system area, it is possible  to
+    use "FUTIL" to transfer the contents of this file to blocks 1-6 of  the
+    RKA0: area. However, in order for this process to work, a discipline of
+    backing up the directory must be followed. If it is not, there will  be
+    nothing to copy when a crash occurs. It is suggested  that  every  time
+    the pack is used, the last thing that should be done is to run "QUIT".
+
+
+    DISK RECOVERY SCENERIO
+
+
+    Assume that your pack has "crashed". You are unable to  boot  the  disk
+    and if you try to access the "A" area from another device,  you  get  a
+    "DIRECTORY I/O ERROR". However, you are able to boot to the "B" area of
+    the disk using the "B" Side bootstrap.
+
+
+    "SYS:" is now "RKB0:" and the target area is "RKA0:"
+
+
+    First create a new system head and a zeroed directory for RKA0:
+
+
+
+         .R PIP
+         *RKA0:<RK8EA.SY/Y/Z
+
+
+
+    Now we transfer the directory. Remember that the file "DIRECT.TS"  must
+    be present on RKB0. This was created by running "QUIT" before the crash
+    occurred. If this housekeeping was not done,  the  following  procedure
+    will not work.
+
+
+         .SUB RECOVR
+
+
+    This batch stream will use FUTIL to transfer a recovered directory onto
+    area "A" from "DIRECT.TS" on the "B" area.
+
+
+
+
+    ADDITIONAL INFO on SYSTEM HEADS
+
+
+    The system heads (.SY files) which are primarily for  the  use  of  the
+    batch streams, can be used  in  a  rather  interesting  manner.  It  is
+    possible to create a diagnostic media even  if  you  do  not  have  the
+    correct hardware configuration. An example of this  is  making  a  TC08
+    Diagnostic DECtape on a TD8E. This is the  method  used  by  the  Batch
+    Stream "TC08.BI". Another handy example is to make  a  system  targeted
+    for an RKS8E Disk Configuration. To do this, simply:
+
+         -    Mount your disk in drive 0; a scratch in drive 1 of an RK8E
+              system
+
+         -    Copy your disk to another pack using the RKUTIL copy option
+
+         -    Use PIP /Y to transfer the RKS8E system area
+
+              ie:  .R PIP
+                   *RKA1:<SYS:RKS8EA.SY/Y
+                   *RKB1:<SYS:RKS8EB.SY/Y
+
+    The resulting pack in drive 1 is now bootable on an RKS8E system.
+    FINAL THOUGHTS
+
+
+
+    I feel that this system as it presently exists is a  comprehensive  and
+    easy to use diagnostic tool. It has been extensively tested and has  no
+    known bugs. We are, however, all occassional  victims  of  the  various
+    rules and corollaries of Murphy's Law. If there is  anything  you  need
+    additional information on, try the HELP files (.HELP [foo]);  something
+    just might be there !
+
+
+    I firmly believe that  the  best  way  of  learning  is  by  doing  and
+    therefore encourage experimentation with this system. A few things must
+    be kept in mind while doing so however.
+
+
+         1)   This system is for internal DEC consumption only. Any pack
+              destined to be left on a customer site must be created by the
+              batch stream "CUSPAK.BI".
+
+         2)   Many of the CUSPs and Utilities have been modified for this
+              system. These enhancements are NOT supported by Digital !
+              Therefore it is not recommended that you try modifying any of
+              the ".SV" programs on the pack since any patches you try may
+              conflict with what has already been done. In particular, I
+              refer to "DECX8.SV" and the ".BX" files. Please read the file
+              on RKB0 called "DECX8.TX" for more info.
+
+
+
+    By the way, it is said that "all work and no play makes Rick a dull
+    boy" , so try typing:
+
+
+              .R RKBOOT/B
+
+              .HELP
+
+
+
+    have fun ...
+

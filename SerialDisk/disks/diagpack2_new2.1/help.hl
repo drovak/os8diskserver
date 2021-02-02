@@ -1,0 +1,772 @@
+
+&
+&HELP
+
+		   WELCOME  TO  CASINO  DIGITAL
+
+	THE FOLLOWING GAMES ARE AVAILIBLE FOR YOUR ENTERTAINMENT
+
+To play, type "EX" <space> NAME <return>  ... where "NAME" is the game you want
+      "HELP" <space> NAME <return>  ... for instructions to play a game
+
+"CHESS"		-	bet you can't beat the computer at this game !
+"HELLO"		-	answer the questions  ...  get the computer's response ...
+"ROCKET"	-	can you successfully land a rocket on the moon ?
+"SPACWR"	-	you must save the galaxy from the Klingon menace !
+"WUMPUS"	-	hunt the terrible Wumpus in his underground liar
+"BLKJAC"	-	Casino Rules  ... the game is 21 ...
+"ROULET"	-	another casino game to loose your shirt at !
+"TICTAC"	-	so you think Tic Tac Toe is easy ?? Try to win this one .
+"CRAPS"		-	roll the dice   ...   loose your money   ...
+"FOOTBL"	-	gridiron action with you as the quarterback
+"SNOOPY"	-	print a picture of the dog
+"BANNER"	-	makes a banner of your choice
+"LOAN"		-	figures compound interest on a bank loan
+"ADVENT"	-	the infamous game of "Adventure" !  (only on 32K systems)
+
+&GAMES
+&FUN
+
+		FUN  and  GAMES
+		---------------
+
+
+	There are several Basic Games on this Diskette
+
+	To run them, follow the rules for running BASIC.SV
+
+		ie: for "SPACWR"
+
+		.EXEC SPACWR	(or)	.BASIC
+					OLD OR NEW -- OLD
+					PROG NAME  -- SPACWR
+					READY
+					RUN
+
+		      will get you on the air ...
+
+	Most of these games have instruction files that may be accessed by
+	typing, for example, "HELP SPACWR" to get the instructions on the
+	terminal, or "HELP SPACWR-L" to get them on the line printer.
+
+&WUMPUS
+	WUMPUS.BA		-	A "HUNT THE WUMPUS" GAME
+
+
+YOU ARE A FAMOUS HUNTER DESCENDING DOWN INTO THE CAVES OF DARKNESS,
+LAIR OF THE INFAMOUS MAN-EATING WUMPUS.  YOU ARE EQUIPPED WITH FIVE
+BENT ARROWS, AND ALL YOUR SENSES.  THERE ARE TWENTY CAVES CONNECTED
+BY TUNNELS, AND THERE ARE TWO OTHER KINDS OF HAZARDS:
+
+	A) PITS, WHICH ARE BOTTOMLESS, AND USUALLY FATAL TO FALL
+	INTO.  THERE ARE THREE SUCH PITS IN THE NETWORK.
+
+	B) SUPER-BATS, WHICH IF YOU STUMBLE INTO THEIR ROOM WILL
+	PICK YOU UP AND DROP YOU IN SOME RANDOM ROOM IN THE NETWORK.
+	YOU MAY SHOOT SUPER-BATS, THERE IS ONE IN EACH OF THREE OR
+	FOUR ROOMS WITHIN THE NETWORK.  THE SUPER-BATS GENERALLY STAY
+	IN THEIR OWN ROOMS, EXCEPT WHEN DISPOSING OF INTRUDERS OR
+	SCAVENGING FOR FOOD IN THE PITS.
+
+IF YOU BLUNDER INTO THE SAME ROOM AS THE WUMPUS, YOU LOSE....
+THE NORMALLY SLEEPING WUMPUS DOES NOT MOVE (HAVING GORGED HIMSELF UPON
+A PREVIOUS HUNTER).  HOWEVER SEVERAL THINGS CAN WAKE HIM UP:
+
+	1) WALKING INTO HIS ROOM,
+	2) SHOOTING AN ARROW ANYWHERE IN THE NETWORK,
+	3) TRIPPING OVER DEBRIS (CLUMSINESS),
+	4) TURNING ON THE LIGHTS, IN ORDER TO SEE WHERE YOU ARE
+	HEADED.
+
+IF HE WAKES UP THERE'S A POSSIBILITY HE WILL MOVE, HOWEVER, HE'S TOO
+LAZY TO MOVE MORE THAN ONE ROOM BETWEEN SNOOZES.  THE WUMPUS IS TOO
+BIG TO BE PICKED UP BY SUPER-BATS AND HAS SUCKER FEET, SO HE DOESN'T
+FALL INTO THE PITS.
+
+YOU CAN SMELL THE WUMPUS FROM ONE OR TWO ROOMS AWAY.  YOU WILL
+TREMBLE WITH FEAR WHEN HE MOVES ABOUT.  YOU CAN HEAR SUPER-BATS FROM
+ONE ROOM AWAY, AND FEEL DRAFTS (FROM BOTTOMLESS PITS) FROM ONE ROOM
+AWAY (AND TASTE THE FEAR...).
+
+TO SHOOT AN ARROW TYPE "SHOOT" INSTEAD OF A MOVE, AND THEN
+SPECIFY WHICH ROOMS THE ARROW SHOULD PASS THROUGH.  YOU ARE STRONG
+ENOUGH TO SHOOT IT THROUGH AS MANY AS FIVE ROOMS.  BENT ARROWS HAVE
+NO PROBLEM ROUNDING CORNERS OF LESS THAN 98.6 DEGREES.  IF YOU
+SPECIFY AN IMPOSSIBLE PATH THE ARROW WILL RICOCHET OFF THE WALLS OF
+THE ROOM, LOSING SPEED, AND WILL EVENTUALLY COME TO REST IN ONE OF
+THE ADJOINING ROOMS.  THE PATH MAY BE TERMINATED BY SPECIFYING ROOM 0.
+
+EACH ROOM IS CONNECTED TO THREE OTHER ROOMS BY THREE TUNNELS A, B
+AND C.  YOU MUST ALWAYS MOVE BETWEEN ROOMS BY SPECIFYING WHICH
+TUNNEL YOU WISH TO EXPLORE.  YOU CAN ALWAYS RETRACE YOUR FOOT STEPS
+BY MOVING BACK USING THE SAME TUNNEL DESIGNATOR.
+
+IF YOU WISH TO SEE WHICH ROOMS ARE AT THE ENDS OF THE TUNNELS YOU
+MAY TYPE "LIGHTS ON" INSTEAD OF A MOVE.  THIS MAY BE AN UNHEALTHY
+LUXURY HOWEVER BECAUSE THE LIGHT GIVES THE WUMPUS INSOMNIA.  TO
+EXTINGUISH THE LIGHTS SIMPLY TYPE "LIGHTS OFF".
+
+		GOOD LUCK HUNTING!!
+
+
+&SPACWR
+                     INSTRUCTIONS FOR SPACWR
+
+
+THE GALAXY IS DIVIDED INTO AN 8,8 QUADRANT GRID
+WHICH IS IN TURN DIVIDED INTO AN 8,8 SECTOR GRID.
+
+THE CAST OF CHARACTERS IS AS FOLLOWS:
+<*> = ENTERPRISE
++++ = KLINGON
+>!<=STARBASE
+ * =STAR
+
+
+
+COMMAND 0 = WARP ENGINE CONTROL:
+  COURSE IS IN A CIRCULAR NUMERICAL      4  3  2
+  VECTOR ARRANGEMENT AS SHOWN.            \ ^ /
+  INTEGER AND READ VALUES MAY BE           \^/
+  USED.  THEREFORE COURSE 1.5 IS        5 ----- 1
+  HALF WAY BETWEEN 1 AND 2.                /!\
+                                          / ! \
+  A VECTOR OF 9 IS UNDEFINED, BUT        6  7  8
+  VALUES MAY APPROACH 9.
+    COURSE
+  ONE WARP FACTOR IS THE SIZE OF
+  ONE QUADRANT.  THEREFORE TO GET
+  FROM QUADRANT 6,5 TO 5,5 YOU WOULD
+  USE COURSE 3. WARP FACTOR 1
+
+
+
+COMMAND 1 = SHORT RANGE SENSOR SCAN
+  PRINT THE QUADRANT YOU ARE CURRENTLY IN.  INCLUDING
+  STARS, KLINGONS, STARBASES, AND THE ENTERPRISE, ALONG
+  WITH OTHER PERTINATE INFORMATION.
+
+
+
+COMMAND 2 = LONG RANGE SENSOR SCAN
+  SHOWS CONDITIONS IN SPACE FOR ONE QUADRANT ON EACH SIDE
+  OF THE ENTERPRISE IN THE MIDDLE OF THE SCAN. THE SCAN
+  IS CODED IN THE FORM XXX, WHERE THE UNITS DIGIT IS THE 
+  NUMBER OF STARS, THE TENS DIGIT IS THE NUMBER OF STAR-
+  BASES.  THE HUNDREDS DIGIT IS THE NUMBER OF KLINGONS.
+
+
+
+COMMAND 3 = PHASER CONTROL
+  ALLOWS YOU TO DESTROY THE KLINGONS BY HITTING HIM WITH
+  SUITABLY LARGE NUMBERS OF ENERGY UNITS TO DEPLETE HIS 
+  SHIELD POWER.  KEEP IN MIND THAT WHEN YOU SHOOT AT HIM,
+  HE GONNA SHOOT AT YOU, TOO!
+
+
+
+COMMAND 4 = PHOTON TORPEDO CONTROL
+  COURSE IS THE SAME AS USED IN WARP ENGINE CONTROL
+  IF YOU HIT THE KLINGON, HE IS DESTROYED AND CANNOT FIRE
+  BACK AT YOU.  IF YOU MISS, YOU ARE SUBJECT TO HIS 
+  PHASER FIRE.
+
+  NOTE:  THE LIBRARY COMPUTER (COMMAND 7) HAS AN OPTION
+  TO COMPUTE TORPEDO TRAJECTORY FOR YOU (OPTION 2).
+
+
+
+
+COMMAND 5 = SHIELD CONTROL
+  DEFINES NUMBER OF ENERGY UNITS TO BE ASSIGNED TO SHIELDS
+  ENERGY IS TAKEN FROM TOTAL SHIP'S ENERGY.
+  NOTE THAT TOTAL ENERY INCLUDES SHIELD ENERGY.
+
+
+
+COMMAND 6 = DAMAGE CONTROL REPORT
+  GIVES STATE OF REPAIRS OF ALL DEVICES.  A STATE OF REPAIR
+  LESS THAN ZERO SHOWS THAT THE DEVICE IS TEMPORARALY
+  DAMAGED.
+
+
+
+COMMAND 7 = LIBRARY COMPUTER
+  THE LIBRARY COMPUTER CONTAINS THREE OPTIONS:
+    OPTION 0 = CUMULATIVE GALACTIC RECORD
+WHICH SHOWS COMPUTER MEMORY OF THE RESULTS
+OF ALL PREVIOUS LONG RANGE SENSOR SCANS
+    OPTION 1 = STATUS REPORT
+WHICH SHOWS NUMBER OF KLINGONS, STARDATES,
+AND STARBASES LEFT.
+    OPTION 2 = PHOTON TORPEDO DATA
+GIVES TRAJECTORY AND DISTANCE BETWEEN THE
+ENTERPRISE AND ALL KLINGONS IN YOUR QUADRANT
+
+
+
+COMMAND 8 = BEGIN NEW CONTEST (WITH NEW GALAXY LAYOUT).
+
+
+
+&BLACKJACK
+&BLKJAC
+&BLKJAK
+
+			BLACKJACK
+			---------
+
+	This is a game of Blackjack, Las Vegas sytle. Here are the rules of
+the house:
+
+	-  The dealer must hit on 16 or less and will stay on 17 or more
+	-  You may split a pair and play a hand with each of them
+	-  You may double your bet and revieve exactly one more card any time
+	   on your first hit
+
+	The typing instructions are:
+		(0)  No hit
+		(1)  Hit
+		(2)  Double your bet
+		(3)  Split a pair
+
+	When the dealer has an exposed ace, he will ask you for an insurance bet
+that will risk half your bet for the amount equal to your bet if you win. You
+win if the dealer has a Blackjack, and lose if he doesn't.
+
+	The house limit is $500.00   ...   Good Luck !!
+
+&CRAPS
+
+			CRAPS
+			-----
+
+
+	This is a Craps game, with the computer as your opponent. The rules are:
+
+
+		-  a 7 or 11 on the first roll wins
+
+		-  a 2, 3, or 12 on the first roll loses
+
+		-  any other number rolled becomes your "point" and you 
+		   continue to roll ... if you make your point, you win, if you
+		   roll a 7, you lose.
+
+		-  the die change hands when you lose
+
+&FOOTBALL
+&FOOTBL
+
+			FOOTBALL
+			--------
+
+	Responses requiring a YES/NO answer are (0) NO or (1) YES
+
+	On offense you are permitted to:
+
+		(10)  Run
+		(11)  Pass
+		(12)  Sweep
+		(13)  Screen Pass
+		(14)  Long Pass
+		(15)  Draw Play
+		(16)  Punt
+		(17)  Fieldgoal
+
+	On defense you may:
+
+		(4)  Normal	-  good against sweep & screen
+		(5)  Hold	-  good against run, pass, or draw
+		(6)  Blitz 	-  good against pass or long pass
+		(7)  Intercept	-  increase your odds at interception
+		(8)  Block	-  gives a chance to block kick, but decreases
+				   the runback distance.
+
+	To call a play, type its code. Also, time out may be called 3 times per
+half by typing a (2). Have fun .......
+
+&ROULET
+			ROULET
+			------
+
+	Betting Layout					Types of Bets
+	  (* = RED)
+
+	--------------				(1)-(36) signify a straight bet
+	 1*   2    3*				     on that number
+	 4    5*   6				         pay off is 35:1
+	 7*   8    9*				The 2:1 bets are:
+	10   11   12*				(37) 1-12	(40) First Col.
+	--------------				(38) 13-24	(41) Second Col.
+	13   14*  15				(39) 25-36	(42) Third Col.
+	16*  17   18*
+	19*  20   21*				The even money bets are:
+	22   23*  24				(43) 1-18	(46) Odd
+	--------------				(44) 19-36	(47) Red
+	25*  26   27*				(45) Even	(48) Black
+	28   29   30*	
+	31   32*  33				(49) 0   and   (50) 00 pay 35:1
+	34*  35   36*				but 0 and 00 do not count under
+	--------------				any bets except their own
+
+		When asked for a bet, type the number and amount bet, seperated
+	by a comma <,> ... minimum bet is $5 ; maximum is $500 
+
+&TICTAC
+
+		TIC TAC TOE
+		-----------
+
+
+	The move positions are:
+
+
+
+	     1     2     3
+						Computer  =  "X"
+	     4     5     6
+						You       =  "0"
+	     7     8     9
+
+
+
+
+	type a (0) if you want the computer to move first, a (1) if you want to.
+
+
+&CHEKMO
+&CHESS
+
+CHEKMO-II     Chess Program for the PDP-8           PAGE   1
+
+
+
+ ABSTRACT
+ --------
+   CHEKMO-II is a chess playing program which  will  run  on
+ any  PDP-8  family  computer.  The program will play either
+ the white pieces or the black pieces,  and  will  play  and
+ accept all classes of legal moves, including, castling both
+ short  and  long,  en  passant  pawn  captures,  and   pawn
+ promoting  moves to any legal promotion piece.  The program
+ prints out its moves in  Algebraic  Notation,  and  accepts
+ moves using Algebraic Notation.
+   Included in the command  structure  of  the  program  are
+ commands  which  allow  you  to input board positions using
+ Forsyth Notation, and get a printout of the board  at  your
+ terminal.
+
+ EQUIPMENT
+ ---------
+   CHEKMO-II will run on any PDP-8 family  computer  with  a
+ minimum  of  4k  of  memory,  and  an  ASR33 Teletype(1) or
+ equivelent terminal.
+
+ EXECUTION TIME
+ --------------
+   The time that CHEKMO-II takes to calculate its moves,  is
+ highly  dependent  upon  the position of the pieces.  It is
+ generaly within the range of 20 seconds, to 2  minutes  per
+ move.   In  "blitz  mode" (see the "BM" command), CHEKMO-II
+ makes its moves much more  quickly,  but  at  the  cost  of
+ reduced playing strength.
+ Note: All times quoted are assuming that CHEKMO-II is being
+ run on a stand alone PDP-8/E(1.2 us Cycle time).
+
+ LOADING AND STARTING CHEKMO-II
+ -------------------------------
+   The CHEKMO-II binary tape is a standard binary  tape  and
+ can be loaded using the BIN Loader program(DEC-08-LBAA-PM),
+ or the OS8 "ABSLDR"  program.   The  starting  address  for
+ CHEKMO-II  is  0200.   At any time, CHEKMO-II can be halted
+ and restarted at location 0200.
+
+
+
+
+
+
+
+
+
+
+
+                       -- -- -- -- --
+ (1) Teletype is a  registered  trademark  of  the  Teletype
+ Corporation.
+
+CHEKMO-II     Chess Program for the PDP-8           PAGE   2
+
+
+
+ ON LINE OPERATION
+ -----------------
+   Before continuing be advised that all lines of  input  to
+ CHEKMO-II  must  be  terminated  with  a  carriage  return.
+ Typing a CTRL/U character echos "^U"  and  erases  anything
+ typed  so far on a line.  Typing a RUBOUT character deletes
+ the last character typed and  prints  a  "\"  character  to
+ indicate  the deletion.  CHEKMO-II has an input buffer with
+ room for 24 characters.  If more  than  24  characters  are
+ typed  on  a line(not counting rubouts and the "rubbed out"
+ characters), a "^U" is  printed  and  the  entire  line  is
+ deleted.
+   When CHEKMO-II  is  started  at  location  0200  it  will
+ print...
+
+ CHEKMO-II
+
+   to identify itself and setup the pieces on  its  internal
+ board to thier original squares.  Then it will ask...
+
+ W.  YOUR MOVE? 
+
+   The "W.  " at the begining of the  line  is  to  indicate
+ that  it  is  whites move.  The "YOUR MOVE?" indicates that
+ CHEKMO-II is waiting for you to input  a  move  for  white,
+ using  modified algebraic notation (Described on Pg 6).  If
+ the  move  that  you  type  in  is  illegal  or  impossible
+ CHEKMO-II responds with...
+
+ ?
+ W. YOUR MOVE?
+
+   Asking again for you to type in a legal move.  If a legal
+ move is typed, CHEKMO-II will make the move on its internal
+ board, then ask...
+
+ B. YOUR MOVE ?
+
+   CHEKMO-II is now waiting for you to type in  a  move  for
+ black(note the "B.  ").  As before, typing in an impossible
+ move causes CHEKMO-II to...
+
+ ?
+ B. YOUR MOVE ?
+
+   Ask  again  for  a  legal  move.   A  legal  move  causes
+ CHEKMO-II to make that move on its internal board, then ask
+ for a move for white.  Play continues in this manner  until
+ a move is made that checkmates or stalemates.  At that time
+ CHEKMO-II will print...
+
+ CHECKMATE
+
+CHEKMO-II     Chess Program for the PDP-8           PAGE   3
+
+
+
+ Or
+
+ STALEMATE
+
+   In either case the final position is then printed
+
+                  -- ** -- BK -- ** -- **
+                  ** -- ** WQ ** -- ** --
+                  -- ** -- ** WK ** -- **
+                  ** -- ** -- ** -- ** --
+                  -- ** -- ** -- ** -- **
+                  ** -- ** -- ** -- ** -- 
+                  -- ** -- ** -- ** -- **
+                  ** -- ** -- ** -- ** --
+
+   CHEKMO-II now restarts itsef at  location  0200,  and  is
+ ready to play another game.
+
+CHEKMO-II     Chess Program for the PDP-8           PAGE   4
+
+
+
+ SPECIAL COMMANDS
+ ----------------
+ At any time when CHEKMO-II is waiting for you to type in  a
+ move,  you  may  instead  type  in  one  of  the 10 special
+ commands  currently  implimented.   Each  special   command
+ consists of 2 characters and is described below.
+
+  PW  --  CHEKMO-II is instructed to play the white  pieces.
+          Whenever  it is whites turn to move CHEKMO-II will
+          printout and make a  move  for  white  instead  of
+          asking "YOUR MOVE ?".
+
+  PB  --  Same as "PW" except that CHEKMO-II  makes  a  move
+          for  the black pieces every time it is blacks turn
+          to move.
+
+  PN  --  CHEKMO-II plays niether  white  nor  black.   This
+          cancels previous "PW" and "PB" commands
+
+  BD  --  CHEKMO-II  will  print  out  the   current   board
+          position
+
+  MV  --  Causes CHEKMO-II to printout  and  make  the  next
+          move for the side whose turn it is
+
+  SK  --  Skip the move that CHEKMO-II is  asking  for,  and
+          make it the other sides move.
+            Note: According to the laws  of  chess,  "The  2
+          players  must  alternate  in  making  1  move at a
+          time".  The SK command is included because it  can
+          somtimes be fun to use in "non serious" games.
+
+  RE  --  Stands  for  "Reset"  (or  "Resign").   It  resets
+          CHEKMO-II's internal board to the initial starting
+          position, and begins a new game.
+
+  BM  --  Puts CHEKMO-II into "Blitz mode".  In Blitz  mode,
+          CHEKMO-II  does  not  think  very deeply about its
+          moves, but instead, makes them in 3  seconds  each
+          on the average.
+
+  TM  --  Resets CHEKMO-II to its regular "thoughtful"  mode
+          of play.
+
+  IP  --  Instructs CHEKMO-II  to  accept  the  input  of  a
+          position using Forsyth notation(Described on Pg 7)
+          CHEKMO-II prints a ">"  to  indicate  that  it  is
+          ready for you to enter a line.  If you violate the
+          rules of Forsyth notation,  an  error  message  is
+          printed,  and CHEKMO-II waits for you to enter the
+          error line again.  If you enter in  a  good  line,
+          CHEKMO-II  prints  a  ">"  and  waits for the next
+          line.  When all 8 ranks are entered  successfully,
+
+CHEKMO-II     Chess Program for the PDP-8           PAGE   5
+
+
+
+          the  board position just inputed gets printed out.
+          Possible  error  messages  and  thier  causes  are
+          discribed below.
+
+          Message      Cause
+            1?       More than 8 squares specified
+            2?       Less than 8 squares specified
+            3?       Piece color not "W" or "B"
+            4?       Unknown piece letter
+
+CHEKMO-II     Chess Program for the PDP-8           PAGE   6
+
+
+
+ ALGEBRAIC NOTATION
+ ------------------
+   Algebraic notation  is  the  system  recommended  by  the
+ International Chess Federation(F.I.D.E.), for the recording
+ of chess moves.  Since in regular Algebraic notation,  both
+ upper  and  lower  case  letters  are  used, and since most
+ teleprinters output only upper case leters, CHEKMO-II  uses
+ a  modified form of algebraic notation to accept moves, and
+ to print  out  its  own  moves.   This  modified  Algebraic
+ notation is described here.
+   The ranks(horizontal rows of squares) are numbered from 1
+ to   8  starting  from  whites  side  of  the  board.   The
+ files(vertical rows of squares) are numbered from  A  to  H
+ starting  at the left(blacks right) hand side of the board.
+ The intersection of the file letter and rank  number  gives
+ each  square  a  unique  name.  For example, In the initial
+ position, whites  king  occupies  square  E1,  blacks  king
+ occupies  square  E8, and the pawn in front of blacks queen
+ occupies square D7.  Whites knight on  square  B1  and  can
+ move to squares A3 and C3.
+
+     A8 B8 C8 D8 E8 F8 G8 H8    BR BN BB BQ BK BB BN BR
+     A7 B7 C7 D7 E7 F7 G7 H7    BP BP BP BP BP BP BP BP
+     A6 B6 C6 D6 E6 F6 G6 H6    -- ** -- ** -- ** -- **
+     A5 B5 C5 D5 E5 F5 G5 H5    ** -- ** -- ** -- ** --
+     A4 B4 C4 D4 E4 F4 G4 H4    -- ** -- ** -- ** -- **
+     A3 B3 C3 D3 E3 F3 G3 H3    ** -- ** -- ** -- ** --
+     A2 B2 C2 D2 E2 F2 G2 H2    WP WP WP WP WP WP WP WP
+     A1 B1 C1 D1 E1 F1 G1 H1    WR WN WB WQ WK WB WN WR
+
+   A move is specified by the square  number  of  the  piece
+ that  is  moving,  an  optional  "-" or ":", and the square
+ number that the piece is moving  to.   If  the  move  gives
+ check,  an optional "+" character after the move is used to
+ signify that.  Using this notation, the  2  possible  moves
+ for  whites  knight on square B1 would be, B1-C3 and B1-A3.
+ The symbol "O-O" is used to specify king side castling, and
+ the symbol "O-O-O" is used to specify queens side castling.
+ Pawn promotion moves are printed out in the same manner  as
+ any other pawn move, except that they are followed by a "="
+ and the initial of the piece the pawn is promoting to.  For
+ example,  on  an  empty  board,  a  pawn on A7 would have 4
+ posible moves,
+
+          A7-A8=N    A7-A8=B    A7-A8=R    A7-A8=Q
+
+   On input, If no equal sign and initial are specified, the
+ promotion is assumed to be to a queen.
+
+CHEKMO-II     Chess Program for the PDP-8           PAGE   7
+
+
+
+ FORSYTH NOTATION
+ ----------------
+   Forsyth notation is a shorthand method  of  recording  or
+ describing chess positions.  Since regular Forsyth notation
+ uses both lower and upper case letters, and most telletypes
+ have  only  upper  case  letters, CHEKMO-II uses a modified
+ form of Forsyth notation, a description of which follows.
+   Using Forsyth notation the board  position  is  described
+ rank by rank, starting with rank 8.  Each rank is described
+ from left to right in the following manner.  If a square is
+ occupied,  the  initial  for  the  pieces  color(W  or  B),
+ followed by the initial for the piece (R,B,K,Q,P or N), are
+ used  to describe that square.  Empty squares are indicated
+ by a number from 1 to 8,  equal  to  the  number  of  empty
+ squares  adjacent  to  one another.  Every square on a rank
+ must be accounted for in this manner, and  thus  each  rank
+ must total 8 pieces and/or empty squares.
+   Here is a position accompanied by its  representation  in
+ Forsyth notation...
+
+     BR BN BB ** BK ** BN BR    BRBNBB1BK1BNBR
+     BP BP BP -- ** BP BP BP    BPBPBP2BPBPBP
+     -- ** -- ** -- ** -- **    8
+     ** -- BB -- WP -- ** --    2BB1WP3
+     -- ** -- ** -- ** -- BQ    7BQ
+     ** -- WN WP ** -- BN --    2WNWP2BN1
+     WP WP WP ** -- ** -- WP    WPWPWP4WP
+     WR -- WB WQ WK WB WN WR    WR1WBWQWKWBWNWR
+
+CHEKMO-II     Chess Program for the PDP-8           PAGE   8
+
+
+
+ ERROR HALTS
+ -----------
+   There  are  2  legitimate  error  halts   possible   with
+ CHEKMO-II
+
+ Address            Explanation
+
+  5004    An unexplaned interrupt has occured.  To  recover,
+          press  the  CLEAR  and  CONTinue  keys(START  on a
+          non-PDP-8/E).  If the error persists, try to  find
+          its  cause  and eliminate it.  A likley cause is a
+          DF32 Disk  unit  select  switch  set  to  the  OFF
+          position.
+
+  1761    The  position   has   gotten   too   complex   and
+          CHEKMO-II's  push  down  list has overflowed.  You
+          Win!!.   Just  before  halting,   CHEKMO-II   will
+          printout...
+
+          I RESIGN
+
+          This error can probably only occur if one or  both
+          sides  has  queened  several  pawns.   Restart  at
+          location 0200 to start a new game.
+
+
+   Halting at any other address is extremly unlikley, and is
+ caused  either  by a hardware failure, or an as yet unknown
+ program bug.
+
+
+ KNOWN BUGS
+ ----------
+   There are no known "bugs" in CHEKMO-II Rev#63.
+
+
+ KNOWN DEFICIENCIES
+ ------------------
+   CHEKMO-II does not recognize the value  of  passed  pawns
+ until they reach the 6th or 7th rank.
+
+   CHEKMO-II has been programed to  use  the  same  strategy
+ throughout  the game.  This strategy has been optimized for
+ good play in the Middle-game, and  Opening.   As  a  result
+ CHEKMO-II plays poor moves in some Endgame positions.
+
+   If either the  white  side  or  the  black  side  becomes
+ signifigantly more powerfull than the other(about 4 queens)
+ CHEKMO-II may play some strange, but legal moves.  This  is
+ caused by overflow in an internal evaluator routine.
+
+&YAHTZE
+
+INSTRUCTIONS FOR PLAYING YAHTZEE
+
+YAHTZEE MAY BE PLAYED BY UP TO 15 PEOPLE.
+THE OBJECT OF THE GAME IS TO GET THE HIGHEST SCORE
+EACH PLAYER ON HIS TURN RECEIVES FROM THE COMPUTER
+THE VALUES OF THE 5 PSEUDO-DICE. HE MAY THEN ROLL
+AS MANY OF THEM AS HE WANTS TO AGAIN. HOWEVER,
+HE IS ENTITLED UP TO BUT NO MORE THAN THREE ROLLS
+OF THE DICE.
+     YOU TELL THE COMPUTER HOW MANY DICE YOU
+WANT TO CHANGE, THEN TELL IT WHICH ONES IN THE FOL-
+LOWING MANNER;
+
+ TYPE: '1' FOR THE 1ST DIE, '2' FOR THE 2ND, ETC.
+     AFTER THE THIRD ROLL THE PLAYER MUST DECIDE HOW
+HE WANTS TO SCORE HIS FIVE DICE.
+TYPING 'SUMMARY' WILL SHOW WHAT CATEGORIES
+HAVE BEEN USED. OTHERWISE,
+YOU HAVE 13 CHOICES, TYPE ONE OF THE FOLLOWING
+DEPENDING ON HOW YOU WANT YOUR DICE SCORED.
+THE CHOICES ARE:
+ACES,TWOS,THREES,FOURS,FIVES,SIXES
+THREE OF A KIND,FOUR OF A KIND,FULL HOUSE, SM. STRAIGHT,
+LG. STRAIGHT, YAHTZEE,CHANCE.
+WHAT THE COMPUTER WILL DO:
+FOR ACES IT WILL COUNT AND ADD ALL OF YOUR ONES.
+FOR TWOS IT WILL COUNT AND ADD ALL OF YOUR TWOS.
+THE SAME IS TRUE THROUGH THE SIXES
+THREE OF A KIND WILL TOTAL ALL OF THE DICE PRO-
+VIDED THAT YOU HAVE THREE OF A KIND
+FOUR OF A KIND IS THE SAME AS THREE OF A KIND EXCEPT
+THAT YOU MUST HAVE FOUR OF A KIND
+FULL HOUSE (3 OF ONE NO. AND 2 OF ANOTHER) WILL YIELD
+25 POINTS. SM. STRAIGHT WILL GIVE YOU 30 POINTS BUT
+YOU MUST HAVE A SEQUENCE OF FOUR.
+LG.STRAIGHT WILL YIELD 40 POINTS BUT YOU MUST HAVE A SE-
+QUENCE OF FIVE.
+YAHTZEE WILL GIVE 50 POINTS IF YOU HAVE FIVE OF A KIND.
+CHANCE WILL TOTAL ALL OF YOUR DICE AND USE THAT AS YOUR SCORE.
+CHANCE IS USEFUL WHEN YOU DON'T HAVE ANY THING WORTH SCORING.
+ANOTHER CATEGORY, 'ZERO' WILL ZERO OUT A CATAGORY
+IF YOU DON'T HAVE ANYTHING WORTH SCORING
+BUT HAVE PERHAPS ALREADY USED YOUR CHANCE.
+
+IF YOUR ACCUMULATED SCORE OF THE FIRST SIX CATEGORIES
+EVER REACHES AT LEAST 63 POINTS YOU WILL RECEIVE
+A BONUS OF 35 POINTS!
+
+
+
+
+GOOD LUCK!!!!!
+
+&ADVENT
+&ADV
+&ADVENTURE
+
+
+			ADVENTURE  !  !
+
+
+	This system contains Dick Murphy's version of PDP-8 Adventure.
+It can normally be run by typing ".R ADVENT" ( ".EX ADVENT" if you are on the
+NED Diagnostic System). However, if you are creating it on a NEW system
+device, there are some things to do first.
+
+
+	You must have				Run in this sequence
+	-------------				--------------------
+
+	FRTS.SV					.R FRTS
+	ADVENT.LD				*ADVENT
+	ADVENT.TX				*ADVENT.TX/1
+	ADVENT.DA				*ADVENT.DA/2
+						*$		(altmode)
+						.SAVE SYS ADVENT
+
+	Now you can run the game by ".R ADVENT".
+
+&
