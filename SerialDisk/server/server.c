@@ -1,26 +1,57 @@
 /* 
-	This program talks to the PDP-8 via an asynchronous serial interface to
-	simulate a disk drive located as a file on the PC.
-	It needs a config file disk.cfg or $HOME/.disk.cfg with the format defined in
-	config.c
-
-	Press ctrl-C to stop the server.
-
-	TODO:
-	DONE - transfer 0040 pages if page count is 0 (and not field 0!)
-	DONE - emulate RK05 disk pack (requires two entry points)
-	DONE - make program to replace bootloader and handler on disk packs
-	- ctrl-c operation (for non-system version)
-	DONE - non-system version
-	DONE - increase transfer rate
-	- clean up code
-	- make better converter utilities
-	- write better test utility
-	- check length of file on start
-	- grow filesystem as writes occur
-	- timeout
-	- hardware handshaking
-	- fix RIM loading
+//	This program talks to the PDP-8 via an asynchronous serial interface to
+//	simulate disk drives located as a file on the PC.
+//	It needs a config file disk.cfg or $HOME/.disk.cfg with the format defined in
+//	config.c
+//	Disk file format is compatible with the ubiquitous SimH etc. format.
+//
+//	Press ctrl-C to stop the server.
+//
+//	2/1/21 V1.3 Vince Slyngstad
+//	---------------------------
+//
+//	Re-ordered the edit history to put recent changes on top.
+//	Fix a problem where success was returned instead of failure
+//	  when attempting to access a disk image not specified on the
+//	  command line.
+//	Version number bumped to 1.3.
+//
+//	Bob Adamson modifications
+//	-------------------------
+//
+//	Minor changes to variable naming to suit myself ;-) 6/Nov/2015
+//	Minor changes to text  output 6/Nov/2015
+//	Increased to serving (up to) 4 disks (for nonsystem handler) 6/Nov/2015
+//	Added command to shut down the server ('Q' from client)
+//	 - very system dependent, but wanted for dedicated (eg raspberry Pi) server
+//
+//	Kyle Owens original version
+//	---------------------------
+//
+//	TODO:
+//	DONE - transfer 0040 pages if page count is 0 (and not field 0!)
+//	DONE - emulate RK05 disk pack (requires two entry points)
+//	DONE - make program to replace bootloader and handler on disk packs
+//	- ctrl-c operation (for non-system version)
+//	DONE - non-system version
+//	DONE - increase transfer rate
+//	- clean up code
+//	- make better converter utilities
+//	- write better test utility
+//	- check length of file on start
+//	- grow filesystem as writes occur
+//	- timeout
+//	- hardware handshaking
+//	- fix RIM loading
+//
+//	TODO:
+//	Remove bootloader code?
+//	Consider ^C interrupt issues - at present no interruptions are possible:
+//	- interrupting during a read is no problem in theory but the server will
+//	  blow up if the pdp-8 transmits while the server is still flushing the read.
+//	  (Note the pdp-8 will do this if it exits to OS/8 on a ^C)
+//	- interrupting a write will hang the server as it will keep waiting for the
+//	  remainder of the transmission.
 */
 
 #include <termios.h>
@@ -70,7 +101,9 @@ int terminate = 0;
 #include "config.c"
 #include "comm.c"
 
-static const char usage[] = "Usage: %s -1 system [-2 disk2] [-r 1|2] [-w 1|2] [-b bootloader]\n";
+// Note: We expect there to be (at least) a first disk, disk1
+// although this would not be strictly necessary for non-system devices
+static const char usage[] = "Usage: %s -1 disk1 [-2 disk2] [-3 disk3] [-4 disk4] [-r 1|2|3|4] [-w 1|2|3|4] [-b bootloader]\n";
 
 int initialize_xfr();
 void send_word(int word);
@@ -84,12 +117,16 @@ void receive_buf(char* buf, int length);
 int transmit_buf(char* buf, int length);
 
 int fd;
-FILE* disk;
+FILE* disk1;
 FILE* disk2;
+FILE* disk3;
+FILE* disk4;
 FILE* selected_disk_fp;
 FILE* btldr;
-char* filename_disk;
+char* filename_disk1;
 char* filename_disk2;
+char* filename_disk3;
+char* filename_disk4;
 char* filename_btldr;
 char serial_dev[256];
 long baud;
@@ -108,10 +145,14 @@ int acknowledgment;
 int i, j, c;
 int num_bytes;
 int num_pages;
-int read_proof = 0;
-int write_proof = 0;
-int read_proof2 = 0;
-int write_proof2 = 0;
+int read_protect1 = 0;
+int write_protect1 = 0;
+int read_protect2 = 0;
+int write_protect2 = 0;
+int read_protect3 = 0;
+int write_protect3 = 0;
+int read_protect4 = 0;
+int write_protect4 = 0;
 int half_block = 0;
 int block_offset = 0;
 int selected_disk;
@@ -119,46 +160,62 @@ int selected_side;
 
 int use_disk1 = 0;
 int use_disk2 = 0;
+int use_disk3 = 0;
+int use_disk4 = 0;
 int send_btldr = 0;
 
 /*
- * Sent from PDP:  ABCD -> XXcccddd XXaaabbb
- * Stored in file: ABCD -> bbcccddd 0000aaab
- * Sent to PDP:    ABCD -> 00aaabbb 00cccddd
+ * Sent from PDP:  abcd -> XXcccddd XXaaabbb
+ * Stored in file: abcd -> bbcccddd 0000aaab
+ * Sent to PDP:    abcd -> 00aaabbb 00cccddd
  */
 
 /*
  * -b [file]: send bootloader on start
- * -1 [file]: use file as first disk
+ * -1 [file]: use file as first (system) disk
  * -2 [file]: use file as second disk
- * -r [1|2]: read only
- * -w [1|2]: write only
+ * -3 [file]: use file as third disk
+ * -4 [file]: use file as fourth disk
+ * -r [1|2|3|4]: read only (NB - for OS/8 system disk (disk 1) must be read/writeable)
+ * -w [1|2|3|4]: write only
  */
 
 int main(int argc, char* argv[])
 {
 	signal(SIGINT, int_handler);
 
-	while ((c = getopt(argc, argv, "-1:2:b:r:w:")) != -1)
+	while ((c = getopt(argc, argv, "-1:2:3:4:b:r:w:")) != -1)
 	{
 		switch (c)
 		{
-			case '1': //primary disk
+			case '1': //first disk
 				use_disk1 = 1;
-				filename_disk =optarg;
+				filename_disk1 = optarg;
 				break;
-			case '2': //secondary disk
+			case '2': //second disk
 				use_disk2 = 1;
 				filename_disk2 = optarg;
 				break;
-			case 'r': //read-proof
+			case '3': //third disk
+				use_disk3 = 1;
+				filename_disk3 = optarg;
+				break;
+			case '4': //fourth disk
+				use_disk4 = 1;
+				filename_disk4 = optarg;
+				break;
+			case 'r': //read-protect
 				i = 0;
 				while (optarg[i] != 0)
 				{
 					if (optarg[i] == '1')
-						read_proof = 1;
+						read_protect1 = 1;
 					else if (optarg[i] == '2')
-						read_proof2 = 1;
+						read_protect2 = 1;
+					else if (optarg[i] == '3')
+						read_protect3 = 1;
+					else if (optarg[i] == '4')
+						read_protect4 = 1;
 					else
 					{
 						printf(usage, argv[0]);
@@ -167,14 +224,18 @@ int main(int argc, char* argv[])
 					i++;
 				}
 				break;
-			case 'w': //write-proof
+			case 'w': //write-protect
 				i = 0;
 				while (optarg[i] != 0)
 				{
 					if (optarg[i] == '1')
-						write_proof = 1;
+						write_protect1 = 1;
 					else if (optarg[i] == '2')
-						write_proof2 = 1;
+						write_protect2 = 1;
+					else if (optarg[i] == '3')
+						write_protect3 = 1;
+					else if (optarg[i] == '4')
+						write_protect4 = 1;
 					else
 					{
 						printf(usage, argv[0]);
@@ -197,25 +258,26 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	printf("PDP-8 Disk Server for OS/8, v1.0\n");
+	printf("PDP-8 Disk Server for OS/8, v1.3\n");
 
 	if (!use_disk1)
 	{
+		printf("no system disk (disk1) specified\n");
 		printf(usage, argv[0]);
 		exit(1);
 	}
 	else
 	{
-		disk = fopen(filename_disk, "r+");
-		if (disk == NULL)
+		disk1 = fopen(filename_disk1, "r+");
+		if (disk1 == NULL)
 		{
-			fprintf(stderr, "On file %s ", filename_disk);
+			fprintf(stderr, "On file %s ", filename_disk1);
 			perror("open failed");
 			exit(1);
 		}
-		printf("Using system disk %s with read %s and write %s\n", filename_disk, 
-			(read_proof ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR), 
-			(write_proof ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR));
+		printf("Using first  disk %s with read %s and write %s\n", filename_disk1, 
+			(read_protect1 ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR), 
+			(write_protect1 ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR));
 	}
 	
 	if (use_disk2)
@@ -228,8 +290,36 @@ int main(int argc, char* argv[])
 			exit(1);
 		}
 		printf("Using second disk %s with read %s and write %s\n", filename_disk2, 
-			(read_proof2 ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR), 
-			(write_proof2 ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR));
+			(read_protect2 ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR), 
+			(write_protect2 ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR));
+	}
+
+	if (use_disk3)
+	{
+		disk3 = fopen(filename_disk3, "r+");
+		if (disk3 == NULL)
+		{
+			fprintf(stderr, "On file %s ", filename_disk3);
+			perror("open failed");
+			exit(1);
+		}
+		printf("Using third  disk %s with read %s and write %s\n", filename_disk3, 
+			(read_protect3 ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR), 
+			(write_protect3 ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR));
+	}
+
+	if (use_disk4)
+	{
+		disk4 = fopen(filename_disk4, "r+");
+		if (disk4 == NULL)
+		{
+			fprintf(stderr, "On file %s ", filename_disk4);
+			perror("open failed");
+			exit(1);
+		}
+		printf("Using fourth disk %s with read %s and write %s\n", filename_disk4, 
+			(read_protect4 ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR), 
+			(write_protect4 ? MAKE_RED "disabled" RESET_COLOR : MAKE_GREEN "enabled" RESET_COLOR));
 	}
 
 	if (send_btldr)
@@ -246,8 +336,8 @@ int main(int argc, char* argv[])
 	setup_config(&baud,&two_stop,serial_dev);
 	fd = init_comm(serial_dev,baud,two_stop);
 	
-	printf("Using serial port %s at %lu with %s\n", 
-		serial_dev, baud, (two_stop ? "2 stop bits" : "1 stop bit"));
+	printf("Using serial port %s at %s with %s\n", 
+		serial_dev, baud_lookup[baud - 1].baud_str, (two_stop ? "2 stop bits" : "1 stop bit"));
 
 	if (send_btldr)
 	{
@@ -265,6 +355,17 @@ int main(int argc, char* argv[])
 		printf(MAKE_GREEN "Bootloader sent\n" RESET_COLOR);
 	}
 
+/*
+// Command processor
+// Accepts the following wakeup commands:
+// @	- read the first sector/first side/first disk (boot sector)
+// A	- process command to first side of first disk
+// B	- process command to second side of first disk
+// C-H	- process command to first/second side of second/third/fourth disk
+// Q	- stop operations and shut down the server
+//	- anything else is a (non-fatal) error
+*/
+	
 	for (;;)
 	{			
 		receive_buf(buf, 1); //wait for command
@@ -272,7 +373,7 @@ int main(int argc, char* argv[])
 		{
 			case '@':
 				printf("Booting...\n");
-				if (!read_from_file(disk, 0, disk_buf, BLOCK_SIZE * BYTES_PER_WORD))
+				if (!read_from_file(disk1, 0, disk_buf, BLOCK_SIZE * BYTES_PER_WORD))
 				{
 					djg_to_pdp(disk_buf, converted_disk_buf, BLOCK_SIZE);
 					if (!transmit_buf(converted_disk_buf, BLOCK_SIZE * BYTES_PER_WORD))
@@ -293,7 +394,11 @@ int main(int argc, char* argv[])
 			case 'B':
 			case 'C':
 			case 'D':
-				//got signal
+			case 'E':
+			case 'F':
+			case 'G':
+			case 'H':
+				//got signal pointing to drive and side
 				//send any char as ack
 				//get function
 				//get starting block number
@@ -316,7 +421,7 @@ int main(int argc, char* argv[])
 				}*/
 				if (initialize_xfr())
 				{
-					fprintf(stderr, MAKE_RED "Failed to initialize, sending NACK\n" RESET_COLOR);
+					fprintf(stderr, MAKE_RED "Failed to initialize, sending NACK %04o\n" RESET_COLOR, acknowledgment);
 					send_word(acknowledgment);
 				}
 				else
@@ -399,9 +504,15 @@ int main(int argc, char* argv[])
 				break;
 			case 'Q': //quit server
 				printf(MAKE_YELLOW "Received quit signal, server quitting\n" RESET_COLOR);
+				fclose(disk1);
+				fclose(disk2);
+				fclose(disk3);
+				fclose(disk4);
+				system("sudo shutdown -h now");
 				exit(0);
 			default:
-				fprintf(stderr, MAKE_RED "Received unknown command %04o\n" RESET_COLOR, buf[0]);
+				fprintf(stderr, MAKE_RED "Received unknown command - ignored - character %04o\n" 
+					RESET_COLOR, buf[0]);
 				break;
 		}
 	}
@@ -415,7 +526,10 @@ void int_handler(int sig)
 	c = getchar();
 	if (c == 'y' || c == 'Y')
 	{
-		fclose(disk);
+		fclose(disk1);
+		fclose(disk2);
+		fclose(disk3);
+		fclose(disk4);
 		exit(0);
 	}
 	else
@@ -442,7 +556,7 @@ int initialize_xfr()
 	i = 0;
 	j = 0;
 
-	if (buf[0] == 'B' || buf[0] == 'D')
+	if (buf[0] == 'B' || buf[0] == 'D' || buf[0] == 'F' || buf[0] == 'H')
 	{
 		block_offset = NUMBER_OF_BLOCKS;
 		selected_side = 1;
@@ -457,14 +571,14 @@ int initialize_xfr()
 	{
 		if (!use_disk1)
 		{
-			fprintf(stderr, MAKE_RED "Warning: no system disk!\n" RESET_COLOR);
+			fprintf(stderr, MAKE_RED "Warning: no first disk!\n" RESET_COLOR);
 			acknowledgment = NACK;
 			retval = -1;
 		}
 		else
 		{
-			selected_disk_fp = disk;
-			selected_disk = 0;
+			selected_disk_fp = disk1;
+			selected_disk = 1;
 		}
 	}
 	else if (buf[0] == 'C' || buf[0] == 'D')
@@ -473,14 +587,50 @@ int initialize_xfr()
 		{
 			fprintf(stderr, MAKE_RED "Warning: no second disk!\n" RESET_COLOR);
 			acknowledgment = NACK;
+			selected_disk = 2;
 			retval = -1;
 		}
 		else
 		{
 			selected_disk_fp = disk2;
-			selected_disk = 1;
+			selected_disk = 2;
 		}
 	}
+	else if (buf[0] == 'E' || buf[0] == 'F')
+	{
+		if (!use_disk3)
+		{
+			fprintf(stderr, MAKE_RED "Warning: no third disk!\n" RESET_COLOR);
+			acknowledgment = NACK;
+			selected_disk = 3;
+			retval = -1;
+		}
+		else
+		{
+			selected_disk_fp = disk3;
+			selected_disk = 4;
+			selected_disk = 3;
+		}
+	}
+	else if (buf[0] == 'G' || buf[0] == 'H')
+	{
+		if (!use_disk4)
+		{
+			fprintf(stderr, MAKE_RED "Warning: no fourth disk!\n" RESET_COLOR);
+			acknowledgment = NACK;
+			retval = -1;
+		}
+		else
+		{
+			selected_disk_fp = disk4;
+			selected_disk = 4;
+		}
+	}
+	else if (buf[0] =='Q')
+	{
+		system("sudo shutdown -h now");
+		retval = -1;
+		}
 	else
 	{
 		fprintf(stderr, MAKE_RED "Warning: handler sent bad character!\n" RESET_COLOR);
@@ -502,15 +652,19 @@ int initialize_xfr()
 			fprintf(stderr, MAKE_RED "Warning: unused bits in device code are set!\n" RESET_COLOR);
 	}
 		
-	if (current_word & 04000)
+	// Do not attempt to over-write failure with success here!
+	if (retval == 0)
 	{
-		direction = WRITE;
-		acknowledgment = ACK_WRITE;
-	}
-	else
-	{
-		direction = READ;
-		acknowledgment = ACK_READ;
+		if (current_word & 04000)
+		{
+			direction = WRITE;
+			acknowledgment = ACK_WRITE;
+		}
+		else
+		{
+			direction = READ;
+			acknowledgment = ACK_READ;
+		}
 	}
 	
 	num_pages = (current_word & 03700) >> 6;
@@ -522,30 +676,44 @@ int initialize_xfr()
 	start_block = decode_word(buf, 2);
 	
 #ifdef DEBUG
-	//printf("Disk:     %s\n", (selected_disk ? "secondary" : "system"));
+	//printf("Disk:     %s\n", (selected_disk ? "secondary" : "first"));
 	//printf("Side:     %d\n", selected_side);
 	printf("Function: %04o\n", current_word);
 	printf("Buffer:   %04o\n", buffer_addr);
 	printf("Block:    %04o\n", start_block);
 #endif
 
-	printf("Request to %s %d page%s to side %d on %s disk\n", (direction == WRITE ? "write" : "read"),
-		num_pages, (num_pages == 1 ? "" : "s"), (block_offset ? 1 : 0), (selected_disk ? "secondary" : "system"));
+	if ((selected_disk == 1) || (selected_disk == 2))
+	{
+		printf("Request to %s %d page%s %s side %d on %s disk\n", (direction == WRITE ? "write" : "read"),
+		num_pages, (num_pages == 1 ? "" : "s"), (direction == WRITE ? "to" : "from"),
+		(block_offset ? 1 : 0), (selected_disk-1 ? "second" : "first"));
+	}
+	else
+	{
+		printf("Request to %s %d page%s %s side %d on %s disk\n", (direction == WRITE ? "write" : "read"),
+		num_pages, (num_pages == 1 ? "" : "s"), (direction == WRITE ? "to" : "from"),
+		(block_offset ? 1 : 0), (selected_disk-1 ? "fourth" : "third"));
+	}
 	printf("Buffer address %05o, starting block %05o\n", 
 		(field << 12) | buffer_addr, start_block);
 
-	if ((direction == WRITE && selected_disk == 0 && write_proof == 1) ||
-		(direction == WRITE && selected_disk == 1 && write_proof2 == 1))
+	if  ((direction == WRITE && selected_disk == 1 && write_protect1 == 1) ||
+		(direction == WRITE && selected_disk == 2 && write_protect2 == 1) ||
+		(direction == WRITE && selected_disk == 3 && write_protect3 == 1) ||
+		(direction == WRITE && selected_disk == 4 && write_protect4 == 1))
 	{
-		fprintf(stderr, MAKE_RED "Warning: selected disk is write proofed!\n" RESET_COLOR);
+		fprintf(stderr, MAKE_RED "Warning: write command and selected disk is write-protected!\n" RESET_COLOR);
 		acknowledgment = NACK | 16;
 		retval = -1;
 	}
 	
-	if ((direction == READ && selected_disk == 0 && read_proof == 1) ||
-		(direction == READ && selected_disk == 1 && read_proof2 == 1))
+	if  ((direction == READ && selected_disk == 1 && read_protect1 == 1) ||
+		(direction == READ && selected_disk == 2 && read_protect2 == 1) ||
+		(direction == READ && selected_disk == 3 && read_protect3 == 1) ||
+		(direction == READ && selected_disk == 4 && read_protect4 == 1))
 	{
-		fprintf(stderr, MAKE_RED "Warning: selected disk is read proofed!\n" RESET_COLOR);
+		fprintf(stderr, MAKE_RED "Warning: read command and selected disk is read-protected!\n" RESET_COLOR);
 		acknowledgment = NACK | 16;
 		retval = -1;
 	}
@@ -559,7 +727,7 @@ int initialize_xfr()
 	
 	if ((field == 0) && (buffer_addr + (num_pages * PAGE_SIZE) > 07600))
 	{
-		fprintf(stderr, MAKE_RED "Warning: client asking to overwrite system handler!\n" RESET_COLOR);
+		fprintf(stderr, MAKE_RED "Warning: client asking to overwrite OS/8 resident page!\n" RESET_COLOR);
 		acknowledgment = NACK | 4;
 		retval = -1;
 	}
@@ -585,9 +753,9 @@ int decode_word(char* buf, int pos)
 }
 
 /*
- * Sent from PDP:  ABCD -> XXcccddd XXaaabbb
- * Stored in file: ABCD -> bbcccddd 0000aaab
- * Sent to PDP:    ABCD -> 00aaabbb 00cccddd
+ * Sent from PDP:  abcd -> XXcccddd XXaaabbb
+ * Stored in file: abcd -> bbcccddd 0000aaab
+ * Sent to PDP:    abcd -> 00aaabbb 00cccddd
  */
 
 void djg_to_pdp(char* buf_in, char* buf_out, int word_count) 

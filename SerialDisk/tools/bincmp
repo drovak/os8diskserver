@@ -1,0 +1,167 @@
+#!/usr/bin/perl
+# 
+# Copyright © 2015-2020 by Vincent Slyngstad
+# 
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS LISTED ABOVE BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# 
+# Except as contained in this notice, the names of the authors above
+# shall not be used in advertising or otherwise to promote the sale, use
+# or other dealings in this Software without prior written authorization
+# from those authors.
+
+@rem = '
+@echo off
+c:\perl5\bin\perl %0 %1 %2 %3 %4 %5 %6 %7 %8 %9
+goto endofperl
+@rem ' if @rem;
+
+$max = 0;
+
+#open(STDERR, ">log") || die "log: $!";
+#
+# Open the first file in binary mode and read it in.
+# Issue: Many of the DEC tapes have the location bit set in
+# their checksums, so we must allow that.
+open(INPUT, $ARGV[0]) || die "$ARGV[0]: $!";
+binmode(INPUT);
+@core1 = (); $loc = $store = undef;
+$sum = $add = $field = 0;
+while (read(INPUT, $top, 1)) {
+  $top = unpack("C", $top);
+  next if $top == 0200;	# Leader or Trailer
+  last if $top == 0232; # End of file
+  # It isn't trailer.  That implies time to store the previous word
+  # if any.
+  if (defined($store)) {
+    $core1[$field*4096+$loc] = $store;
+    $max = $field*4096+$loc unless $max > $field*4096+$loc;
+    $store = undef;
+    $loc = ($loc + 1) & 07777;
+    $sum += $add;
+    $fortran = 0;
+  }
+  if ($top & 0200) { # Better be field setting!
+    die "$ARGV[0]: Invalid field setting" unless $top >= 0300;
+    die "$ARGV[0]: Invalid field setting" if $top & 0007;
+    $fortran = 1 if $top == 0340;
+    $field = ($top & 070) >> 3;
+    next;
+  }
+  # Read and verify the format of the bottom half.
+  read(INPUT, $bot, 1) || die "$ARGV[0] read: $!";
+  $bot = unpack("c", $bot);
+  die "$ARGV[0]: ".$bot." not in bin format ". tell(INPUT) unless $bot <= 077;
+  # Assemble the word, and figure out the checksum update.
+  $word = ($top << 6) + $bot;
+  $add = $top + $bot; # Update checksum
+  # If the word has the 010000 bit set, it's a location setting.
+  if ($word > 07777) {
+    #
+    # Change location counter
+    $loc = $word & 07777;
+#printf "Loc == %04o\n", $loc;
+    $sum += $add;
+  } else {
+    die "$ARGV[0]: no location counter" unless defined($loc);
+    $store = $word;
+  }
+}
+close(INPUT);
+if ($fortran) {
+  warn "$ARGV[0]: 4K Fortran Binary\n" if $fortran;
+  $sum += 0640; # 4K Fortran loader counts 0300 and 0340
+}
+if (!defined($store)) {
+  # This is that weird case where the checksum has location bit set!
+  $store = $loc;
+  $sum -= $add;
+}
+$sum &= 07777;
+printf "$ARGV[0]: Checksum is %04o, not %04o\n", $sum, $store if $sum != $store;
+#printf STDERR "$ARGV[0]: Checksum is %04o, not %04o\n", $sum, $store if $sum != $store;
+
+#
+# Open the second file in binary mode and compare it.
+open(INPUT, $ARGV[1]) || die "$ARGV[1]: $!";
+binmode(INPUT);
+@core2 = (); $loc = $store = undef;
+$sum = $add = $field = 0;
+while (read(INPUT, $top, 1)) {
+  $top = unpack("C", $top);
+  next if $top == 0200;	# Leader or Trailer
+  last if $top == 0232; # End of file
+  if (defined($store)) {
+    $core2[$field*4096+$loc] = $store;
+    $max = $field*4096+$loc unless $max > $field*4096+$loc;
+    $store = undef;
+    $loc = ($loc + 1) & 07777;
+    $sum += $add;
+    $fortran = 0;
+  }
+  if ($top & 0200) { # Better be field setting!
+    die "$ARGV[1]: Invalid field setting" unless $top >= 0300;
+    die "$ARGV[1]: Invalid field setting" if $top & 0007;
+    $fortran = 1 if $top == 0340;
+    $field = ($top & 070) >> 3;
+    next;
+  }
+  read(INPUT, $bot, 1) || die "$ARGV[1] read: $!";
+  $bot = unpack("c", $bot);
+  die "$ARGV[1]: ".$bot." not in bin format ". tell(INPUT) unless $bot <= 077;
+  $word = ($top << 6) + $bot;
+  $add = $top + $bot; # Update checksum
+  if ($word > 07777) {
+    #
+    # Change location counter
+    $loc = $word & 07777;
+    $sum += $add;
+  } else {
+    die "$ARGV[1]: no location counter" unless defined($loc);
+    $store = $word;
+  }
+}
+close(INPUT);
+if ($fortran) {
+  warn "$ARGV[0]: 4K Fortran Binary\n" if $fortran;
+  $sum += 0640; # 4K Fortran loader counts 0300 and 0340
+}
+if (!defined($store)) {
+  # This is that weird case where the checksum has location bit set!
+  $store = $loc;
+  $sum -= $add;
+}
+$sum &= 07777;
+printf "$ARGV[1]: Checksum is %04o, not %04o\n", $sum, $store if $sum != $store;
+#printf STDERR "$ARGV[1]: Checksum is %04o, not %04o\n", $sum, $store if $sum != $store;
+
+$status = 0;
+for ($loc = 0; $loc <= $max; $loc++) {
+  next unless defined($core1[$loc]) || defined($core2[$loc]);
+  $c1 = defined $core1[$loc]? sprintf("%04o", $core1[$loc]): "XXXX";
+  $c2 = defined $core2[$loc]? sprintf("%04o", $core2[$loc]): "XXXX";
+  if ($c1 ne $c2) {
+    printf "%04o: $c1 != $c2\n", $loc;
+    $status = 1;
+  }
+}
+exit $status;
+
+__END__
+:endofperl

@@ -1,0 +1,56 @@
+#!/usr/bin/expect -f
+
+spawn pdp8
+set timeout -1
+expect {
+	{..$} { exp_continue }
+        {.$} { send "SET SYS NO INIT\r" }
+}
+expect -re {\n\.$}
+send "RUN SYS BUILD\r"
+expect -re {\n\$$}
+send "PR\r"
+expect -re {\n\$$}
+send "UN LPSV\r"
+expect -re {\n\$$}
+send "UN RL0\r"
+expect -re {\n\$$}
+send "DE SYS\r"
+expect -re {\n\$$}
+send "DE DTA1\r"
+expect -re {\n\$$}
+send "DE RXA0,RXA1\r"
+expect -re {\n\$$}
+send "DE RKA1,RKB1\r"
+expect -re {\n\$$}
+send "IN KL8E:TTY\r"
+expect -re {\n\$$}
+send "IN PT8E:PTP,PTR\r"
+expect -re {\n\$$}
+send "LOAD SYS:SDSKSY\r"
+expect -re {\n\$$}
+send "LOAD SYS:SDSKNS\r"
+expect -re {\n\$$}
+send "IN SDSY:SYS,SDA0,SDB0\r"
+expect -re {\n\$$}
+send "IN SDNS:SDA1,SDB1,SDA2,SDB2,SDA3,SDB3\r"
+expect -re {\n\$$}
+send "SYS SDSY:SYS\r"
+expect -re {\n\$$}
+send "DSK SDSY:SYS\r"
+expect -re {\n\$$}
+send "PR\r"
+expect -re {\n\$$}
+send "BOOT\r"
+expect {
+	{ZERO} { send "NO\r" }
+	{SYS BUILT} { }
+	-re {SYS ERR\r\n} { close; exit 1 }
+}
+expect -re {\n\.$}
+send "SAVE SYS:BUILT\r"
+expect -re {\n\.$}
+send "RES/E\r"
+expect -re {\n\.$}
+close
+exit 0

@@ -1,0 +1,45 @@
+#!/bin/bash
+TOOLS=../tools export TOOLS
+
+# BEWARE: This script requires os8xplode, bin2bn, os8implode, mkdsk, 
+# (all of which require Perl), socat, expect, and SIMH all to be
+# available in your environemnt.
+# If you don't have all that, you can fire up an actual machine
+# and go through the steps, or fire up a SIMH and type all the
+# stuff in the 'send' commands of 'runbuild'
+
+#
+# Install the latest handlers into our image.  We assume here
+# that the image is available, has been exploded with os8xplode.
+# This means we can add files to the .0 side and or the .1 side,
+# then use os8implode and mkdsk to assemble $image.new.
+image=diagpack2
+
+#
+# First, make darn sure that the latest driver binaries
+# are copied into our SYS: ($image.0) directories.
+(cd ../handler; make)
+bin2bn ../handler/sdsksy.bin >$image.0/sdsksy.bn
+bin2bn ../handler/sdskns.bin >$image.0/sdskns.bn
+
+#
+# Remove the 'built.sv' from previous runs, if any, in case we
+# are tight for space in the image.
+rm -f $image.0/built.sv
+
+#
+# Next assemble $image.new.  We re-run os8implode, just in case
+# something has changed size, and so we can pick up any files
+# which were added or deleted.  Then we run mkdsk, to create the
+# new disk image.
+# BEWARE: The files get placed back on the disk in alphabetical
+# order, because that's how os8implode enumerated them.
+os8implode $image
+mkdsk $image.xml+
+
+#
+# Finally, run BUILD under SIMH and try to install our new
+# drivers.
+# BEWARE: This presumes that pdp8.ini has been set up to run
+# the image selected above!
+./runbuild

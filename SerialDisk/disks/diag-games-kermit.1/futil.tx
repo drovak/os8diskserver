@@ -1,0 +1,1027 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   FFFFFFF  UU    UU  TTTTTTTT  II  LL     
+                   FF       UU    UU     TT     II  LL     
+                   FFFF     UU    UU     TT     II  LL     
+                   FF       UU    UU     TT     II  LL     
+                   FF       UU    UU     TT     II  LL     
+                   FF        UUUUUU      TT     II  LLLLLLL
+
+
+
+                          OS/8 File UTILity program
+
+                               Jim Crapuchettes
+
+                          MENLO COMPUTER ASSOCIATES
+                         (formerly FRELAN ASSOCIATES)
+                                 P.O. Box 298
+                           Menlo Park, Calif. 94025
+
+
+
+                              Futil Version 6.16
+
+
+                             Writeup Version 6.5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+March 1977                                                               Page i
+                      FUTIL - OS/8 File UTILity program
+                                 NEW FEATURES
+
+
+        This version of FUTIL represents a  significant  revision  and
+expansion  over  the  previous  version.   The  following is a capsule
+summary of the changes and new features of this version:  
+
+
+ 1.     Chaining support and CCL command addition for convenient setup
+        and startup.  Restartable even after CCL command setup.  
+
+ 2.     Addition of F4 support in the form of FPP instruction decoding
+        and .LD module mapping and header decoding (including  overlay
+        specification).  
+
+ 3.     Future   MACREL/LINK   support   in   the   form   of  overlay
+        specification support for  .SV  files  and  extension  of  CCB
+        decoding for overlay information.  
+
+ 4.     DIRECTORY   output   format   to   help  in  decoding  crashed
+        directories and COS format for  examination  of  COS-300  data
+        files.  
+
+ 5.     SCAN  command to do rapid check for read errors on the current
+        device.  
+
+ 6.     Defaults of .SV, .LD and null for FILE command.  
+
+ 7.     Modification to "limit" options for WORD and  STRING  commands
+        for more convenient usage.  
+
+ 8.     FILLER  variable,  used by MODIFY command to fill in specified
+        words whose new contents are not given.  
+
+ 9.     Additional output of VERSION, by itself and with ERRORS.  
+
+ 10.    Several changes to command names and syntax for  more  logical
+        usage.  
+
+ 11.    Swapping  of error messages or write-locked operation (without
+        error messages), as needed.  
+
+ 12.    Absolute block number display in MQ register (if available).  
+
+ 13.    Order of magnitude improvement in  performance  for  WORD  and
+        STRING search commands; WORD is now as fast as SCAN!  
+
+
+        These  new  features  are  paid  for by a reduction of the IOT
+table expansion area from 64 to 32 IOTS and by error message  swapping
+with the USR.  
+
+
+
+
+
+
+
+
+
+March 1977                                                              Page ii
+                      FUTIL - OS/8 File UTILity program
+                               Acknowledgements
+
+
+
+
+
+
+        First, thanks need to go to  Tom  McIntyre  of  West  Virginia
+University  for  the  use of RUNOFF for the generation of this manual.
+The significantly increased readability of the manual is directly  due
+to  the  formatting,  paginating  and  case conversion capabilities of
+RUNOFF.  
+
+        I want to  especially  thank  several  people  who  read  this
+writeup  and  commented  on it and the program.  Tim Clarke, one of my
+associates, reviewed this writeup many times during its  growth.   Jim
+Warren,  currently  editor  of  DR.  DOBBS  JOURNAL,  and  John Tubbs,
+currently at the  Palo  Alto  VA  Hospital,  each  made  many  helpful
+comments  on  the  writeup.   Dennis  McGhie,  currently  at  Stanford
+Research Institute in Menlo Park, made several suggestions on possible
+additions  to  the  program, the error messages in particular.  All of
+these people were associated  with  Stanford  University  or  Stanford
+Medical Center during the time that I worked at Stanford.  Also not to
+be forgotten are many other users who made  comments  and  suggestions
+during the time that this program has been developing.  
+
+        I also want to mention the groups whose computers were used in
+the development of this program.  The  original  program,  XTAPE,  was
+developed on the PDP-8 belonging to the Tropospheric Propagation Group
+of Stanford Electronics Labs.  Most of the work on FUTIL Version 5 was
+done  on  the PDP-8/E belonging to the Department of Anesthesia at the
+Stanford Medical Center.  The rest of the work on FUTIL Version 5  and
+work  on  Version 6 was done on the PDP-12 belonging to the Department
+of Cardiovascular Surgery at  the  Stanford  Medical  Center,  on  the
+PDP-8/E   belonging   to  the  Department  of  Chemistry  at  Stanford
+University and at whatever other computer I could find.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+March 1977                                                             Page iii
+                      FUTIL - OS/8 File UTILity program
+                              TABLE OF CONTENTS:
+
+
+
+
+        Introduction
+                Why bother with FUTIL? . . . . . . . . . . . .   1
+                Running FUTIL (including CCL)  . . . . . . . .   3
+                Special characters used in this writeup  . . .   5
+                Special characters used in FUTIL . . . . . . .   5
+                Access method  . . . . . . . . . . . . . . . .   7
+                Referencing words on the device  . . . . . . .   9
+                Numeric items (or numbers) . . . . . . . . . .  10
+                Errors (and error messages). . . . . . . . . .  11
+
+        Single character (ODT-like) commands . . . . . . . . .  12
+                "Symbolic" output formats  . . . . . . . . . .  14
+
+        Word-type commands . . . . . . . . . . . . . . . . . .  16
+
+                Output formats . . . . . . . . . . . . . . . .  17
+                DUMP . . . . . . . . . . . . . . . . . . . . .  18
+                LIST . . . . . . . . . . . . . . . . . . . . .  19
+                MODIFY . . . . . . . . . . . . . . . . . . . .  20
+
+                Search limits  . . . . . . . . . . . . . . . .  23
+                WORD (search)  . . . . . . . . . . . . . . . .  23
+                STRING (search)  . . . . . . . . . . . . . . .  24
+                SMASK  . . . . . . . . . . . . . . . . . . . .  25
+
+                SET  . . . . . . . . . . . . . . . . . . . . .  27
+                SHOW . . . . . . . . . . . . . . . . . . . . .  28
+                FILE . . . . . . . . . . . . . . . . . . . . .  31
+                WRITE  . . . . . . . . . . . . . . . . . . . .  32
+                SCAN . . . . . . . . . . . . . . . . . . . . .  32
+                REWIND . . . . . . . . . . . . . . . . . . . .  33
+                EXIT . . . . . . . . . . . . . . . . . . . . .  33
+
+                EVAL . . . . . . . . . . . . . . . . . . . . .  34
+
+        Additional examples  . . . . . . . . . . . . . . . . .  36
+
+        Miscellaneous information
+                Assembling, loading & CREFing the program  . .  43
+                Program execution and memory allocation  . . .  43
+                List device output . . . . . . . . . . . . . .  45
+                Implementation notes . . . . . . . . . . . . .  45
+
+        Command summary  . . . . . . . . . . . . . . . . . . .  48
+
+        Single-character command output format summary . . . .  49
+
+
+
+
+
+
+
+
+
+March 1977                                                               Page 1
+                      FUTIL - OS/8 File UTILity program
+                                INTRODUCTION:
+
+
+        Why bother with FUTIL?  
+        ---------------------- 
+
+
+        The most obvious answer is that you want or need  to  use  it!
+This  immediately  leads  to  the  question:  What  does it do?  FUTIL
+enables a user to examine and modify from  the  console  terminal  the
+contents  of  mass  storage  devices  for  which  an  OS/8  handler is
+available.  It is the only program currently available  which  can  be
+used  to patch programs which contain overlays (MACREL/LINK or F4/LOAD
+outputs).  Other possible uses  include:  application  of  patches  to
+system  programs as reported in Digital Software News; examination and
+repair of clobbered OS/8 directories; bad block checking and fixup  on
+a device; decimal/octal conversion of double precision numbers; output
+of the CCB of ".SV" files and the HEADER of ".LD"  files;  examination
+of  non-OS/8  devices;  creation  of special directories.  Its closest
+relatives in the form of DEC-supported software are ODT and EPIC.  ODT
+is   not   used  for  patching  files  on  devices,  however,  so  the
+relationship is in form and  philospohy.   EPIC  can  patch  files  on
+devices  and  can  also  compare files (see OCOMP by Dennis McGhie for
+those comparisons and device independent output that you  really  wish
+EPIC  would  do) and output special paper-tapes of files (if you can't
+get by with a simple SV2BIN program, at least one of  which  has  been
+floating  around  for  some  time, you'll have to use EPIC).  However,
+though FUTIL does not do comparisons or punching, it does a much  more
+convenient  job  of  patching  files on devices, including over thirty
+(30) commands with many options, four  (4)  accessing  modes  for  the
+device,  four  (4) data input formats, two (2) searches, eighteen (18)
+status and information outputs and twelve (12) output formats, all  of
+which allow for easy examination of words or blocks on a device in the
+most  understandable  way.   Supporting  these  functions  is   signed
+double-precision arithmetic expression evaluation which can be used by
+itself (ever try to convert -135748 to octal?) or in any place in  the
+command syntax that a numeric value is needed.  
+
+        Two  simple  examples  at  this  point  may entice you to read
+further.  Assume that you would like to know  what  CCL  remembers  of
+your  last  ".UA"  command.   The  remembrances are stored on block 65
+(octal) of the system device.  As described in the source of CCL, each
+of  the remembrances is allocated 40 (octal, 32 decimal) words in this
+block, the first four of which contain binary information and the last
+34  of  which  contain  the last input command, stored as packed ascii
+characters.  The lines contain the inputs for the commands as follows:
+TECO  and MAKE (line 0), EDIT and CREATE (line 1), COMPILE and EXECUTE
+and PAL (line 2), UA  (line  3),  UB  (line  4),  UC  (line  5),  and,
+possibly,  FUTIL.   So  the  saved  ".UA"  command  can  be  listed by
+outputting the contents of the 4th through 37th words  of  area  3  in
+block 65 as packed ascii characters as follows-- 
+
+        .R FUTIL<cr>                    --call FUTIL from OS/8
+
+        EVAL 3*40+4<cr>                 --calculate start displacement
+        = 00000144 ( 0000100)           -- of the 3rd "line" (=144[8])
+
+
+
+
+March 1977                                                               Page 2
+                      FUTIL - OS/8 File UTILity program
+                                INTRODUCTION:
+
+
+
+            now list the words of  this  line  with  the  LIST
+            command, specifying the output format to be PACKED
+            ascii characters and the words to list to be block
+            65  locations 144 (from above) through 144+33 (the
+            expression for the location of the  last  word  of
+            this  "line").   FUTIL  responds  with  the  start
+            location and  a  line  characters,  and  the  next
+            location  with  a  multiple of 10[8] as an address
+            and a line of characters.  
+
+        LIST PACKED 65.144-(144+33)<cr> --list the words wanted
+
+        0065.00144: DIR R:FUT???.*/E/R=3
+        0065.00160:                     --that's it!
+
+
+                             NOTE on <cr>
+
+         For the examples above and below, the symbol  "<cr>"
+         is  used  to  show  that  you need to terminate your
+         command lines with a "carriage return".   All  other
+         lines above are output by the program.  
+
+
+        Now  lets  assume that you would like to make the simple patch
+for OS/8 FORTRAN IV users with an FPP-8/A to use the  lockout  feature
+of  the  FPP-8/A,  as  given in the August 1976 Digital Software News.
+This requires changing the contents of location  15776  of  FRTS  (the
+Fortran Run Time System) from 400 to 410 (which adds the lockout bit).
+After doing this you  also  want  to  update  the  date  word  of  the
+directory  entry for FRTS (the 4th word beyond the start of the entry)
+to show that the file has been updated.  You would do the following-- 
+
+        .R FUTIL<cr>                    --call it
+
+        SET MODE SAVE<cr>               --set FUTIL to a mapped mode
+        FILE FRTS<cr>                   --look up the file to map
+        FRTS.SV    0671-0722  0032 (0026)  1.327  12/31/75
+                                        --"1.327" is start of entry!
+
+            Now use "ODT" command "/" to  open  and  change  1
+            word.  
+
+        15776/ 0400  410<CR>            --add LOCKOUT bit
+
+        SET MODE NORMAL<cr>             --switch to unmapped
+
+            now  use  "ODT"  command "/" with an expression to
+            open the date word, command "@" to  output  it  in
+            "date"  format  and  then  put today's date (as an
+            expression) in its place!  
+
+
+
+
+
+March 1977                                                               Page 3
+                      FUTIL - OS/8 File UTILity program
+                                INTRODUCTION:
+
+
+        1.(327+4)/  6375  @12/31/75  (D)<CR>  --change file date
+
+        WRITE<cr>                       --send out this change
+
+
+                         NOTE on device access
+
+         First the file FRTS.SV is changed, and then the OS/8
+         directory is updated to the current date.   Changing
+         the  address  desired  from  FRTS  to  the directory
+         automatically writes out the modified block of  FRTS
+         before   reading   in  the  directory  segment  that
+         contains  the  file  name.   However,  the   changed
+         directory  segment  must  be  written out explicitly
+         because there are no other  blocks  to  examine  for
+         this example.  
+
+
+        The  command  set  of  FUTIL  is  divided  into  two groups of
+commands, as seen above.  The  first  group  uses  single  letters  to
+direct the program in the examination and modification of single words
+on the device.  These commands are very similar to the  commands  used
+by OS/8 ODT in both form and function.  Examples would be "/", "+" and
+";".  The second group of commands uses command words  to  direct  the
+program in the dumping, listing, modifying and searching of the device
+more or less on a by-block basis.  Also included in this  group  is  a
+set  of  commands  to  direct  the program in some auxiliary functions
+including setting and resetting  switches  and  variables  within  the
+program,  showing  their  settings and values, etc.  Examples of these
+would be 'DUMP', 'SET' and 'EVALUATE'.  
+
+
+        Running FUTIL (including CCL):  
+        ------------------------------ 
+
+
+        FUTIL can be called into execution by either the OS/8  Monitor
+commands  "R  FUTIL"  (as  seen above) or "RU dev:FUTIL" or by the CCL
+command "FUTIL ...", which may optionally include the specification of
+a  device  name  and/or  a  file name (with optional extension) and/or
+several switches.  The CCL command is an addition which requires  that
+the standard version of CCL be modified.  When execution begins due to
+an "R"  or  "RU  ..."  command,  FUTIL  performs  some  initialization
+(described  in more detail in the section on program execution), types
+a  carriage-return  and  line-feed  and  is  at  your  command.   When
+execution  begins  due  to  the  CCL  command, FUTIL performs the same
+initialization, loads  any  device  handler  requested,  acts  on  any
+switches  given, performs a 'FILE' command if a file name is specified
+(with output as described for this command) and is at your command.  
+
+        When started without further direction, FUTIL  is  set  up  to
+access  the  system  device, the 'ERROR' message output mode is set to
+'LONG', the access 'MODE' is set to 'NORMAL' and no file is known.  To
+
+
+
+
+March 1977                                                               Page 4
+                      FUTIL - OS/8 File UTILity program
+                                INTRODUCTION:
+
+
+access  some  other device, either use the CCL command and specify the
+name  of the device desired (including a ":") or give the command 'SET
+DEVICE dev' (without a ":").  To set  the  'ERROR'  mode  to  'SHORT',
+either  add  "/E"  to  the CCL command, or give the command 'SET ERROR
+SHORT'.  To use some other access mode, either add a  mode  switch  to
+the  CCL  command  ("/L",  "/O"  or  "/S") or give a 'SET MODE <mode>'
+command with a <mode> of 'LOAD', 'OFFSET' or 'SAVE'  (note  switch  to
+mode  correspondence).  When in 'OFFSET' mode, the 'OFFSET' to be used
+can be specified by either adding "=oooo" to the "/O" added to the CCL
+command,  or  the  command  'SET OFFSET oooo' can be given.  Lastly, a
+file lookup can be done either by  adding  a  file  name  to  the  CCL
+command or by giving a 'FILE' command (with three default extensions).
+
+        The following is a summary of the options of the  CCL  command
+for FUTIL:  
+
+        .Futil [dev:][file[.ex]] [/E][<mode switch>] 
+
+where  only  the  first character of the command must be given but any
+other, if specified, must be correct (the standard for  CCL  commands)
+and where the <mode switch> can be one of the following:  
+
+        /L        set: access mode to LOAD, default .ex to .LD only
+        /O=oooo   set: access mode to OFFSET, offset to "oooo"
+        /S        set: access mode to SAVE, default .ex to .SV only
+
+        Finally, when using the CCL command, CCL remembers the command
+line, requiring the desired options to be entered only  once  per  day
+until it is desired to change them.  To call FUTIL with no options and
+without using a previously entered command, add an unused switch (such
+as "/X") to the command.  
+
+
+                     NOTE on second example above
+
+         The use of this extension to CCL would have somewhat
+         simplified  the  second  example  given   previously
+         because  the  command string "FUT FRTS/S" would have
+         called  FUTIL,  'SET'  the  'MODE'  to  'SAVE'   and
+         executed the 'FILE' command, all in one swoop!  
+
+
+        Information  on  addition  of  this command is provided in the
+source of the patch file FUTCCL.PA which is provided  with  the  other
+FUTIL release files.  
+
+
+
+
+
+
+
+
+
+
+
+
+March 1977                                                               Page 5
+                      FUTIL - OS/8 File UTILity program
+                                INTRODUCTION:
+
+
+        Special characters used in this writeup:  
+        ---------------------------------------- 
+
+
+        To help reduce the confusion brought about when  this  writeup
+is  output in upper case only, the characters single quote ('), double
+quote ("), angle brackets (< and >) and square brackets ([ and ]) have
+been  used  to help separate special items from the words around them.
+The single quote character is used to surround  a  word-type  command,
+e.g. the 'FORMAT' option 'SET's up the format in which output is to be
+done.  The double quote is used to surround an item whose actual  name
+is  being  used, e.g. the "RETURN" key is the key on the Teletype that
+has that word printed on it.  The angle brackets are used to  surround
+the name of a type of item (a syntactical type), e.g. "<n>" means that
+a NUMERIC ITEM is to  be  used.   The  square  brackets  are  used  to
+surround  optional  items,  e.g.  "w[ord]"  would  indicate  that  the
+characters "ord" may be supplied optionally.  
+
+
+        Special characters used in FUTIL:  
+        --------------------------------- 
+
+
+        Several characters, when keyed, cause  immediate  action  from
+the   program.   Typing  either  "CTRL"-"P"  (which  prints  "^P")  or
+"CTRL"-"C" (which prints "^C") will immediately cause the  program  to
+stop  whatever  it is doing.  "CTRL"-"P" then causes the program to go
+back to command input mode and wait for you,  while  "CTRL"-"C"  calls
+the OS/8 Monitor (as it does with most system programs).  
+
+        During console terminal input, three other keys can be used to
+help with editing the input string  of  characters.   These  keys  are
+"RUBOUT",  "CTRL"-"U" (which prints "^U") and "CTRL"-"R" (which prints
+"^R").  The action of "RUBOUT" and "CTRL"-"U" is exactly the  same  as
+it  is  for  the  OS/8  Monitor  and  Command  Decoder.  The action of
+"CTRL"-"R" is the same as that of the "LINE-FEED" key for the  Monitor
+and Command Decoder (a different key was required due to the fact that
+"LINE-FEED" is used for other things in this program so the key picked
+is the same one used by TOPS-10 for this function).  
+
+        For  those  users with upper-lower case terminals, the program
+translates all lower case characters received  from  the  keyboard  to
+upper case.  The characters are echoed and handled internally as upper
+case characters.  While this makes use easier, it obviously  does  not
+allow  any lower-case characters to be input directly.  In those cases
+where lower-case codes are needed  in  the  modification  of  a  file,
+either  use  the  codes directly or use a text editor.  Note that this
+translation occurs only on input!  Lower case  characters  in  a  file
+will be printed to the best ability of the output device.  
+
+        All  of  the  commands  are taken in context, i.e. many of the
+characters which are used in the single character command set will not
+be  considered  to  be  commands  if they are included in a line which
+
+
+
+
+March 1977                                                               Page 6
+                      FUTIL - OS/8 File UTILity program
+                                INTRODUCTION:
+
+
+begins with a command word or if they are embedded within expressions.
+
+        The   carriage-return   ("RETURN")   always   starts   command
+execution, and is the terminator for all word-type command lines.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+March 1977                                                               Page 7
+                      FUTIL - OS/8 File UTILity program
+                                INTRODUCTION:
+
+
+        Access method:  
+        -------------- 
+
+
+        The program accesses the  OS/8  device  one  OS/8  block  (256
+words)  at  a  time.  For every location specified, the real block and
+word are determined and compared with the current block in memory.  If
+the   desired   block   and  current  block  are  not  the  same,  the
+<something-changed> flag is  checked  to  see  if  anything  has  been
+changed  in  the  current block.  If nothing has been changed, the new
+block is  read  in.   If  something  has  been  changed,  the  current
+(modified)  block  is first written out and then the new block is read
+in.  This action happens  correctly  even  when  the  access  mode  is
+changing  because  it  is  done  at the level of the OS/8 block number
+right before calling the current 'DEVICE' handler.  
+
+        The contents of the OS/8  device  are  therefore  not  changed
+unless  the  block  in  which  changes  are made is written out either
+implicitly, as described  above,  or  explicitly,  using  the  'WRITE'
+command  (which  is discussed near the end of the section on word-type
+commands).  The result is that typing "CTRL"-"C"  before  writing  out
+the  current  block (assuming it has been modified) will return to the
+Monitor without actually modifying the contents of the device  itself.
+Note,  also,  that only one implicit write attempt is ever made by the
+program.  Should an error occur when  the  write  is  attempted  (e.g.
+write  locked  device),  an  explicit 'WRITE' command must be given to
+actually write out the block.  
+
+        If the words within some block are changed  accidentally,  the
+<something-changed>  flag  can  be reset by using the 'SET' command to
+reset the 'DEVICE' (described further along in this  writeup)  to  the
+same   device   currently   being   used.    This   will   reset   the
+<something-changed> flag, the current block in memory,  and  the  file
+start  block and core-control-block/header-block (if they had been set
+by a 'FILE' command).  The resetting of the current  block  in  memory
+will cause the next access to the device to read in the block desired.
+The resetting of the  file  information  will  require  a  new  'FILE'
+command  to be given to set it back up.  If you can't remember what is
+the current setting of the 'DEVICE', use 'SHOW DEVICE' first and  then
+'SET' it the same.  
+
+        Files  stored  on  an  OS/8 mass-storage device generally fall
+into one of four categories.  The program has four corresponding modes
+for  accessing  the  device.  The current 'MODE' of the program can be
+set by the 'SET' command or by chaining (as described previously)  and
+examined by the 'SHOW' command (to be described later).  
+
+        The three categories and their corresponding modes are:  
+1)  General (binary, ascii and data) files - 'NORMAL' mode
+2)  Core image (save) files - 'SAVE' mode
+3)  FORTRAN IV load modules - 'LOAD' mode
+4)  System overlays - 'OFFSET' mode
+
+
+
+
+
+March 1977                                                               Page 8
+                      FUTIL - OS/8 File UTILity program
+                                INTRODUCTION:
+
+
+        The actual operation of the program for each of these modes is
+as follows:  
+
+'NORMAL'        The  high order 7 bits of the 15 bit address are added
+                to the current block number to get  the  actual  block
+                number.  The low 8 bits of the 15 bit address are used
+                to specify the desired word within that block.  
+
+'SAVE'          The file to be examined must be set  up  by  a  'FILE'
+                command.   "Block"  numbers  are  used  to specifiy an
+                overlay number (future MACREL/LINK support)  and  must
+                be  exactly  zero  ("0")  for  files  without overlays
+                (generated by the monitor "SAVE" command).   The  core
+                segment  data  (pages  and fields) from the file's CCB
+                (core-control-block) is used to determine where on the
+                device  the desired word is to be found.  This is done
+                by first determining the correct block from the file's
+                CCB  and  then  using the low 8 bits of the address to
+                specify  the   desired   word   within   that   block.
+                Specifying a nonexistent address or overlay for one of
+                the single-character  (ODT)  commands  will  cause  an
+                error.   Specifying  a  nonexistent address or overlay
+                for any of  the  word-type  commands  will  cause  the
+                program to ignore the address and access no data.  
+
+'LOAD'          The  file  to  be  examined must be set up by a 'FILE'
+                command.  Block  number  specifications  are  actually
+                taken  as overlay specifications and must be contained
+                within  the  file.   The  information  from  the   OIT
+                (overlay-information-table) in the header block of the
+                file is used to determine  where  on  the  device  the
+                desired  word  is  to be found.  Nonexistent addresses
+                are handled the same way as for 'SAVE' mode.  
+
+'OFFSET'        The 12 bit 'OFFSET' (which is set by the 'SET' command
+                or  by  chaining  with  "/O=oooo"  and examined by the
+                'SHOW' command) is subtracted from the  low  order  12
+                bits  of  the  address and then the same arithmetic as
+                with the 'NORMAL' mode is used.   This  mode  is  used
+                mostly  with  system overlays whose start block number
+                and actual loading address is known.  By  setting  the
+                'OFFSET'  to  the loading address (which can only be a
+                12 bit number), the 12 bit "actual" addresses  of  the
+                overlay can be used.  
+
+
+
+        The  'SAVE' and 'LOAD' modes are mentioned together throughout
+this  writeup  as  MAPPED  modes  because  their  method  of   address
+translation  uses  a  descriptor  block  from  the file of interest to
+control access to the file in a non-contiguous manner.  
+
+
+
+
+
+
+March 1977                                                               Page 9
+                      FUTIL - OS/8 File UTILity program
+                                INTRODUCTION:
+
+
+                     NOTE on block number display
+
+         For all access modes, the OS/8 "actual" block number
+         for the block to be read is stored (for display)  in
+         the computer MQ register (if present).  The value is
+         stored before checking if the current block needs to
+         be written.  It is particularly useful for following
+         the progress of the 'SCAN' command.  
+
+
+
+        Referencing words on the device:  
+        -------------------------------- 
+
+
+        The  words  on  the  OS/8  device  are  referenced  by   their
+<location> (often abbreviated as <l>).  This <location> consists of an
+optional <block> or <overlay> number (which must be followed by a  "."
+if    present),    and    an   <address>   or   <displacement>.    The
+<block>/<overlay> number is a 12-bit number which must be in the range
+0  thru  7776 (octal), or 4094 (decimal).  Block number 7777 (or 4095,
+decimal) does not exist under OS/8, and the program will  ignore  this
+number.   The  <overlay>  number  is  further limited to the number of
+overlays at a given address.  Whenever the <block>/<overlay>  part  of
+the  <location>  is  not used, the program will use the last specified
+value.  The <address>/<displacement> is  a  15  bit  number  (5  octal
+digits), but leading 0's need not be specified.  Thus the forms are:  
+
+        <block>.<displacement>          e.g. 1201.37524
+or
+        <overlay>.<address>             e.g. 3.57633
+or
+        <address>                       e.g. 15721
+or
+        <displacement>                  e.g. 223
+
+
+                  NOTE of caution on device handlers
+
+         Neither this program nor the OS/8 handlers generally
+         include checking for legal  block  numbers!   It  is
+         simply  assumed that all accesses to the device will
+         be done after checking with the directory for  legal
+         file  start  blocks and lengths, which is the normal
+         mode of operation under OS/8.  This  can  have  very
+         interesting  results  with  this  program,  e.g. the
+         RK8/E handler, given a  block  number  greater  than
+         6257 (octal) on device RKA0, will simply continue on
+         into device RKB0!  Use some (or MUCH) caution!  
+
+
+        For the rest of this document, unless otherwise stated,  block
+will  mean  <block>  or  <overlay>  and address will mean <address> or
+
+
+
+
+March 1977                                                              Page 10
+                      FUTIL - OS/8 File UTILity program
+                                INTRODUCTION:
+
+
+<displacement>, depending on usage.  Therefore the definition will be:
+
+        [block.]address         = <location> = <l> 
+
+        Since these location references are numeric input, all of  the
+characteristics  described  next  can  also  be  used  when specifying
+locations.  
+
+
+        Numeric items (or numbers):  
+        --------------------------- 
+
+
+        Two switches are used by the program to  allow  the  input  of
+either  octal, decimal or mixed numeric input where ever numeric input
+is used.  Each new command line always resets the input mode to octal.
+The character "CTRL"-"D" (printed as "^D") switches the input mode for
+any following input to decimal.  The character "CTRL"-"K" (printed  as
+"^K")  switches  the input mode back to octal.  These two switches may
+be located anywhere in numeric input.  
+
+        For example, when inputting a string  of  numbers,  the  input
+would be alternately decimal and octal if it were 
+
+        ^D100,^K100,^D200,^K200,^D300,^K300 
+
+        Two  other  characters,  double  quote  (""") and single quote
+("'"), may be used for numeric input.  The double quote functions  the
+same  way in this program as it does in PAL8--the 8-bit ascii value of
+the following character is used as a number.  As  with  all  character
+input,  the  special characters described earlier cannot be used.  The
+single quote functions in a way similar to the  way  that  the  "TEXT"
+pseudo-op operates in PAL8--the following two characters are masked to
+6-bits each and packed into a  12-bit  word.   There  must  always  be
+exactly  two  characters following the single quote.  If it is desired
+to pack one half of the word with a 6-bit 00, use the  character  "@".
+For  example,  a  string equivalent to the file-name "PIP.SV" would be
+represented by the string 
+
+        'PI,'P@,0,'SV 
+
+        Expressions may also be used for numeric input  when  enclosed
+in  parentheses.   The  parenthesis pair "(" and ")" must surround the
+expression.  When this is so, all the options of  the  'EVAL'  command
+are  available  for  numeric  input.  For example, the contents of the
+switch register can be used for a number by the expression  "(S)",  or
+the  current block number + 5 could be used by the expression "(B+5)".
+See the discussion  of  the  'EVAL'  command  for  the  other  options
+available.  
+
+
+
+
+
+
+
+
+March 1977                                                              Page 11
+                      FUTIL - OS/8 File UTILity program
+                                INTRODUCTION:
+
+
+                          NOTE on expressions
+
+         "(" and ")" must completely surround the expression!
+         Neither  digits  nor  the  switch  characters may be
+         outside of the parentheses or an error will  result.
+         This  is required because many of the non-alphabetic
+         characters  have  multiple  meanings  (commands   or
+         operators)  so  the  use  of  the  parenthesis  pair
+         "(...)" provides the  necessary  context  to  remove
+         ambiguity.  
+
+
+
+        Errors (and error messages):  
+        ---------------------------- 
+
+
+        Whenever  the  program  recognizes  an  error of some type, it
+outputs out an error message to  inform  you  what  went  wrong.   The
+message  tells  both what went wrong and where in the command line the
+error was made.  Depending on the setting of the 'ERROR' mode  switch,
+either 'SHORT' or 'LONG' messages are output.  
+
+        The error messages have the forms:  
+
+        "?<ee> at <cc> <error message>"         -'LONG'
+or
+        "?<ee> at <cc>"                         -'SHORT'
+
+where  <ee> is the error code, <cc> is the number of the column in the
+command line where the program stopped scanning and <error message> is
+the  message  itself.   There  are  currently 45 error conditions with
+corresponding codes and messages to assist the user of  this  program.
+The  error  codes  and their messages can be printed out by the 'SHOW'
+'ERRORS' command.  The 'ERROR' mode is set by the 'SET' command or  by
+chaining with "/E" set.  
+
+        The  error  messages  are swapped with the USR, but not in the
+normal manner, allowing write locked startup  with  the  loss  of  the
+message   text   (see  the  section  on  program  execution  for  more
+information).  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+March 1977                                                              Page 12
+                      FUTIL - OS/8 File UTILity program
+                    SINGLE CHARACTER (ODT-LIKE) COMMANDS:
+
+
+        These commands allow the examination and modification of words
+on an OS/8 device in the same way that ODT allows the examination  and
+modification of the memory in the computer.  
+
+        In all of the following commands where <n>--a numeric item--is
+specified, the operation of "closing" the location  is  to  place  the
+value  of <n> into the word if it is open.  If the current location is
+not open, or if <n> is not specified, no change takes place.  Refer to
+the "Introduction to Programming" (DEC handbook) and the OS/8 Handbook
+sections on ODT  for  more  information  if  needed.   Note  that  (as
+mentioned previously) "[<n>]" with the following commands means that a
+numeric item may be optionally supplied.  
+
+
+<l>/            Open & output the contents  of  location  <l>  in  the
+                current 'OUTPUT' mode.  
+
+   /            Re-open  the  last  location  opened  by  one of these
+                commands  and  output  its  contents  in  the  current
+                'OUTPUT' mode.  
+
+[<n>]#          Close  the current location, re-open it and output its
+                contents in 'BCD' (3 digit binary-coded decimal).  
+
+[<n>]$ (dollar sign) Close the current location, re-open it and output
+                its contents in 'OS/8' ascii.  
+
+[<n>]%          Close  the current location, re-open it and output its
+                contents in 'BYTE' octal (8 bits with OS/8 packing).  
+
+[<n>]&          Close the current location, re-open it and output  its
+                contents in 'COS' format packed ascii.  
+
+[<n>]:          Close  the current location, re-open it and output its
+                contents in 'SIGNED' decimal.  
+
+[<n>]<          Close the current location, re-open it and output  its
+                contents in 'OCTAL'.  
+
+[<n>]=          Close  the current location, re-open it and output its
+                contents in 'UNSIGNED' decimal.  
+
+[<n>]>          Close the current location, re-open it and output  its
+                contents in 'PDP' (symbolic).  
+
+[<n>]?          Close  the current location, re-open it and output its
+                contents in 'DIRECTORY' format [negated DECIMAL,  DATE
+                and PACKED (ascii)].  
+
+[<n>]@          Close  the current location, re-open it and output its
+                contents in 'DATE' format ("mm/dd/yr", 2 digits each).
+
+
+
+
+
+
+March 1977                                                              Page 13
+                      FUTIL - OS/8 File UTILity program
+                    SINGLE CHARACTER (ODT-LIKE) COMMANDS:
+
+
+[<n>][          Close  the current location, re-open it and output its
+                contents in 'ASCII'.  
+
+[<n>]\          Close  the current location, re-open it and output its
+                contents in 'FPP' (symbolic).  
+
+[<n>]]          Close the current location, re-open it and output  its
+                contents in 'PACKED' ascii.  
+
+[<n>]$  ("ALT-MODE"  or  "ESCAPE"  keys)  Close  the current location,
+                re-open it and type its contents as specified  by  the
+                current 'FORMAT'.  
+
+[<n>]"RETURN"   Close the current location.  
+
+[<n>];          Close   the   current   location  and  open  the  next
+                sequential location.  Neither address nor contents are
+                output, but one space is echoed.  
+
+
+
+                      NOTE on use of ";" command
+
+         The  ";"  command  can  be  used  to advance through
+         addresses without outputting their  value  in  octal
+         when  some other format is really more helpful.  For
+         example, when examining a directory, the  file  name
+         and  extension  can  be output u	)@`4^l\;w_o^):qs_9)lQr-P( 4^Z&=i^ApMawWas(rH;rE:j3Df).7G`g&L"^`w:>Kd(x<MBNreiMr(agq]ry/

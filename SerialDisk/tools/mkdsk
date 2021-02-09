@@ -1,0 +1,256 @@
+#!/usr/bin/perl
+# 
+# Copyright © 2015-2020 by Vincent Slyngstad
+# 
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS LISTED ABOVE BE LIABLE
+# FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# 
+# Except as contained in this notice, the names of the authors above
+# shall not be used in advertising or otherwise to promote the sale, use
+# or other dealings in this Software without prior written authorization
+# from those authors.
+#
+# Read the .xml descriptions of disk volumes, 
+# re-create them.  (We don't try to be tolerant 
+# of free format XML.)
+
+#
+# Write a block to the new image.
+sub writeblk {
+    local($blk, @buf) = @_;
+    seek(IMAGE, ($blk+$fsbase)*512, 0) || die "seek($iname): $!";
+    $buf = pack("S*", @buf);
+    return unless length($buf);
+    syswrite(IMAGE, $buf) || die "write($iname) $f: $!";
+# FEATURE: Should book-keep which blocks were written, 
+# and which were forgotten.
+}
+#
+# Ensure at least enough words remain in the directory 
+# segment for the next directory entry.  If not, wrap 
+# up (and output) the directory block, and start a new 
+# one.
+sub reserve {
+    local($needed) = $_[0];
+    return unless $doff + $needed > 255;
+    $dbuf[0] = 07777 & -$dent;
+    $dbuf[2] = $dblk + 1; # Link to next block.
+    # Write the directory block.
+    &writeblk($dblk, @dbuf);
+    $dblk++;
+    die "$fsname: directory full: $file" if $dblk > 6;
+    $dbuf[0] = $dent = 0; # No entries yet
+    $dbuf[1] = $sblk; # Start here
+    $dbuf[2] = 0; # No link yet
+    $doff = 5; # New buffer ptr
+}
+#
+# Trim a date to 12 bits in OS/8 format.
+sub os8date {
+    local($file) = $_[0];
+    local($date) = (stat$file)[9];
+    local($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime($date);
+    $mon++;
+#warn "os8date($f:$date): $mday-$mon-$year\n";
+    $year -= 1970;
+    $year %= 8;
+    return ($mon<<8) + ($mday<<3) + $year;
+}
+#
+# Process a <file></file> sequence.
+sub file {
+    $_ = <XML>;
+    return 0 unless /^<file name='(.*)' start=([0-7]+) end=([0-7]+) mode=(.*)><\/file>$/;
+    ($file, $start, $end, $mode) = ($1, $2, $3, $4);
+    $start = oct($start) if $start =~ /^0/;
+    $end = oct($end) if $end =~ /^0/;
+    # Uppercase a copy of the file name and extension.
+    $f = $file; $f =~ y/a-z/A-Z/;
+    $f =~ s/.*\///;
+    # Copy the data for the file into the disk image.
+    # An empty area of the disk has a file name .NNN,
+    # where NNN is the starting block number.
+    if ($f eq ".$start") {
+        # Don't bother to actually write empty areas.
+        #&copyout($file, $start, $end);
+        # Output 00000, -length
+        &reserve(2); # Need room for 2 words
+        $dbuf[$doff+0] = 0;
+        $dbuf[$doff+1] = 07777 & ($start-$end-1);
+        $doff += 2;
+        $sblk = $end + 1;
+        $dent++;
+    } else {
+        &copyout($file, $start, $end);
+        # Seperate name, extension
+        $ext = $f; $ext =~ s/^.*[.]//;
+        $f =~ s/[.]$ext$//;
+        # Pad with spaces.
+        $f = pack("a6", $f);
+        $ext = pack("a2", $ext);
+        # Pack character pairs into 6bit.
+        @f = split(//, $f);
+        @ext = split(//, $ext);
+        $datew = &os8date($file);
+        &reserve(5); # Need room for 2 words
+        $dbuf[$doff+0] = ((ord($f[0])&077)<<6) + (ord($f[1])&077);
+        $dbuf[$doff+1] = ((ord($f[2])&077)<<6) + (ord($f[3])&077);
+        $dbuf[$doff+2] = ((ord($f[4])&077)<<6) + (ord($f[5])&077);
+        $dbuf[$doff+3] = ((ord($ext[0])&077)<<6) + (ord($ext[1])&077);
+        $dbuf[$doff+4] = $datew;
+        $dbuf[$doff+5] = 07777 & ($start-$end-1);
+        $doff += 6;
+        $sblk = $end + 1;
+        $dent++;
+    }
+    return 1;
+}
+
+sub copyout {
+    local($f, $start, $last) = @_;
+    open(FILE, "$f") || die "$f: $!";
+    binmode(FILE);
+    local($buf, @ibuf, @obuf);
+    local($mode, $eof, $eofpos) = (0, 0, 0);
+    # Check that the file fits in the allocated space!
+    local($blks) = int(((-s $f)+383) / 384);
+    if ($blks != $last-$start+1) {
+        die "$f doesn't fit the allocated space!\n" if $blks != $last-$start+1;
+    }
+    # Unpack the file as if binary.
+    for ($first = $start; $first <= $last; $first++) {
+        # Read a (packed, 384 byte) block.
+        read(FILE, $buf, 384) || die "read($f): $!";
+        @ibuf = unpack("C*", $buf);
+        # Must be text if not a multiple of block size
+        # Add an EOF marker, if so.
+        push(@ibuf, 032) unless $#ibuf%384 == 383;
+$foo = ".rsvd";
+#warn "$f: ibuf[$#ibuf] = $ibuf[$#ibuf]\n" if $f =~ /$foo/;
+        # Pad last block to a multiple of 3 bytes.
+        push(@ibuf, 0) unless $#ibuf%3 == 2;
+        push(@ibuf, 0) unless $#ibuf%3 == 2;
+        # Unpack the block.
+        while (@ibuf) {
+            $c1 = shift @ibuf;
+            $c2 = shift @ibuf;
+            $c3 = shift @ibuf;
+#warn "$f: $c1 $c2 $c3\n" if $f =~ /$foo/;
+            # Worry about it is truly text mode.
+            $mode = 1 if $c1 & 0200; # Must be binary
+            $eofpos++ unless $eof;
+            $eof++ if $c1 == 032;
+            $mode = 1 if $c2 & 0200; # Must be binary
+            $eofpos++ unless $eof;
+            $eof++ if $c2 == 032;
+            $mode = 1 if $c3 & 0200; # Must be binary
+            $eofpos++ unless $eof;
+            $eof++ if $c3 == 032;
+            $mode = 1 if $eof > 1; # Another EOF, must be binary
+            $c1 |= ($c3&0360)<<4;
+            $c2 |= ($c3&0017)<<8;
+#warn "$f: pushing $c1 $c2\n" if $f =~ /$foo/;
+            push(@obuf, $c1, $c2);
+        }
+    }
+    # Force binary treatment for un-named files.
+    $mode = 1 if $f =~ /^\..../;
+#warn "$f: mode is $mode\n" if $f =~ /$foo/;
+#warn "$f: obuf is $obuf[0] $obuf[1]\n" if $f =~ /$foo/;
+    # We walked the file, so we know if it is truly binary.
+    if (!$mode) {
+        # Text file, more mangling is needed!
+        # NOTE: We don't fix your line endings, so 
+        # ~/.exrc: set fileformats=unix,dos
+        # or equivalent is probably needed to perserve them..
+        #
+        # Each word in needs 0200 set, and the first
+        # in each pair also need 04000.
+        for ($i = 0; $i < $#obuf; $i += 2) {
+           $obuf[$i]   |= 04200;
+           $obuf[$i+1] |= 00200;
+        }
+        # Pad the length to an even block.
+        while ($#obuf%256 != 255) {
+            push(@obuf, 04200, 00200);
+        }
+    }
+#warn "$f: obuf is $obuf[0] $obuf[1]\n" if $f =~ /$foo/;
+    # Write @obuf as the result.
+    &writeblk($start, @obuf);
+    return $mode;
+}
+
+sub os8fs {
+    $_ = <XML>;
+    return 0 unless /^<os8fs name='(.*)' base=(.*) size=(.*)>$/;
+    ($fsname, $fsbase, $fssize) = ($1, $2, $3);
+    $fsbase = oct($fsbase) if $fsbase =~ /^0/;
+    &copyout("$fsname/.boot", 0, 0);
+    $sblk = 07;
+    if (-f "$fsname/.kmon") {
+	# System disk, copy out .kmon, etc.
+        &copyout("$fsname/.kmon",  07,  012);
+        &copyout("$fsname/.usr",   013, 015);
+        &copyout("$fsname/.dhand", 016, 025);
+        &copyout("$fsname/.ent",   026, 026);
+        &copyout("$fsname/.sblks", 027, 050);
+        &copyout("$fsname/.cdec",  051, 053);
+        &copyout("$fsname/.sdate", 054, 055);
+        &copyout("$fsname/.merr",  056, 056);
+        &copyout("$fsname/.chain", 057, 057);
+        &copyout("$fsname/.sodt",  060, 063);
+        &copyout("$fsname/.rsvd",  064, 064);
+        &copyout("$fsname/.cclr",  065, 065);
+        &copyout("$fsname/.td8e",  066, 066);
+        &copyout("$fsname/.cclo",  067, 067);
+        $sblk = 070;
+    }
+    $dblk = 1; # Start directory here
+    $dbuf[0] = $dent = 0; # No entries yet
+    $dbuf[1] = $sblk; # Files start here
+    $dbuf[2] = 0; # No link yet
+    $dbuf[3] = 0; # No flag
+    $dbuf[4] = 07777; # 1 additional data word (date)
+    $doff = 5; # Start file entries with word 5
+    $_ = <XML>;
+    die "no <directory>" unless /^<directory>$/;
+    while (&file) {}
+    die "no </directory>" unless /^<\/directory>$/;
+    #
+    # Write out the last directory block.
+    $dbuf[0] = 07777 & -$dent;
+    $dbuf[2] = 0; # Zero link to next block.
+    &writeblk($dblk, @dbuf);
+    # Skip over .kmon, etc.!
+    while (($_ = <XML>)) {
+        last if /^<\/os8fs>$/;
+    }
+    die "no </os8fs>" unless /^<\/os8fs>$/;
+}
+
+foreach $x (@ARGV) {
+    open(XML, "$x") || die "$x: $!";
+    $_ = <XML>;
+    die "no <image>" unless /^<image name='(.*)' size=(.*)>$/;
+    ($iname, $isize) = ($1, $2);
+    open(IMAGE, ">$iname") || die "$iname: $!";
+    while (&os8fs) {}
+    die "no </image>" unless /^<\/image>$/;
+}

@@ -1,0 +1,97 @@
+!VTEDIT - V00.01-8!
+
+@0/<U7Q7"G0;'>/
+128,0ETETU00,2048+32+8ET
+@5/U9283Q9/!Hack!
+@6/.U8ZU4-3U6HM513KM510KM513:G4
+<M0!F!Q7ZJQ7IQ7-13"E10I10U7Q7'
+Q7-10"E13KM5-1%6'
+Q7-21"EQ6W0U70;'
+Q7-127"E-DZ-Q4"N-1AU9-DQ9-27"E32U9'
+Q9-31"GDM5KM51+'0"E13-Q6-2<KM5AM5>1013:G4Q4,ZT'''
+Q7-27"EM0Q7-27"E!F0!27IQ4,ZX4HM513-1U70;'
+Q7-?"EM0OF0'OF'
+>Q4,ZKQ8JQ7/
+0,0X70,0X9
+0U2
+HM513=M5
+<!A!0U40U6!B!1U5
+U7Q7"L-1WM0'
+!V!
+Q7-127"E.-Q5"L.U5'-Q5DOA'
+Q7-31"GQ7I0U2OA'
+Q7-26"E0U30;'
+Q7-23"E:S "F0J'OA'
+Q7-21"E0KOA'
+Q7-14"EIFile Search: .-13,.X4-13DM6"FOA'.U3I@:NOS1'
+Q7-11"EQ5KOA'
+Q7-8"EQ5L.-1"G2R'OA'
+Q7-4"EQ5K13I10I2ROA'
+Q7-3"E0U30;'
+Q7-27"NQ7IQ7-13"E10I'OA'
+M0
+Q7-C"EZ-.-Q5"LZ-.U5'Q5COA'
+Q7-D"E.-Q5"L.U5'Q5ROA'
+Q7-26"E1U3@1\EX\0;'
+Q7-7"E1U3@1\!MT!"EPOMT'@%Executing...
+%EG\0;'
+Q7-?"EM0
+Q7-p"EQ5LOA'
+Q7-q"EQ5-1"E0U5'Q5JOA'
+Q7-r"EZJOA'
+Q7-s"E0LOA'
+Q7-t"E-Q5LOA'
+Q7-u"EZ-.-Q5"LZ-.U5'Q5DOA'
+Q7-v"E.-Q2"L0,.X30,.KOA'.-Q2,.X3.-Q2,.KOA'
+Q7-w"EQ5<13I10I2R>OA'
+Q7-x"EQ5POA'
+Q7-y"EQ5-1"EM0Q7U5'Q5IOA'
+Q7-M"EISearch: .-8,.X4-8DM6"FOA'.U3I@:S!S1!0I.U2
+G4-2D.-Q2U10IQ3,.X8Q3,.KOS'
+Q7-n"E0U6!S!Q1U2Q5M8"F0U2'Q6"NQ6W'OA'
+OA'
+Q7"D0U5<!X!Q5*10+Q7-48U5M0Q7"DOX'0;>OV'
+0U8
+Q7-A"E-1U8'
+Q7-B"E1U8'
+Q8"NQ8"L-Q5U5'Q6"E0U7.U80L
+Q8-.%6<0A-32"L0A-27"N0A-9"E6-(Q7&7)%6-2U7'%71%6''C%7>'
+Q5L-Q6U90U7Q6<.-Z;0A-32"L0A-13"E0;'
+0A-27"N0A-9"E6-(Q7&7)%9-2U7'%71%9''C%71%9"GR'Q9;>
+0U4OB'
+Q7-Q"EICommand: .-9,.X4-9DM6"FOA'.U3G4Q3,.X9Q3,.KWorking...OC'
+Q7-27"E0U6!C!M9-1EU
+Q6"NQ6W'OA'
+Q7-R"E.U4G7.-Q4U2OA'
+Q7-P"EQ4"E.+1U4'Q5LQ4-1,.X7.-Q4+1U20U6OB'
+>
+>M5YM523+320+32KM513Q0ET
+!Z!Q3"N@/Exiting.../M1'
+!Q-reg	Text		Numeric
+0	read char	holds initial ET setting
+1			length of last search string
+2			length of last string gotten
+3	deleted string	temp
+4	arg to M6	cut buffer start
+5	prints esc seq	repeat count
+6	mini editor	# of lines destroyed at top
+7	cut buffer	current char
+8	search command	temp
+9			arg to M5
+
+Hacks:
+
+ESCAPE is sent literally to the terminal via the 27+256^T command
+which fakes out TECO into sending the character literally.
+This avoids the necessity of doing a 0,1ET command which will swap
+in an overlay on 16K machines.
+
+Macro M0 is used to read a character and wait until it is available
+even though read with no wait is enabled.
+To temporarily turn off read with no wait via the 32,0ET command
+would require swapping in an overlay on 16K machines.  Note that
+the current algorithm is terribly inefficient on systems where
+OS/8 is running under timesharing.  In such a case, OS/8 should be
+run in a 20K partition and macro 0 should be initialized to
+	32,0ET ^TU7 0,32ET
+!

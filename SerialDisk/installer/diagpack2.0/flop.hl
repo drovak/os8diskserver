@@ -1,0 +1,614 @@
+
+&
+&HELP
+             -    NEW  ENGLAND  DISTRICT   -
+
+FIELD SERVICE PDP-8 DIAGNOSTIC SYSTEM   . . .   Version  5
+
+OS/8  V3D               DECX8  Rev. E           Restart Addr = 07600
+
+
+Type:
+
+        .R PROG                 -       to run a system program
+        .R PROG.DG              -       to run a diagnostic program
+        .HELP                   -       to type this text file
+        .HELP INFO              -       for more info
+        .HELP FILENAME          -       to type a HELP file on the terminal
+        .HELP FILENAME-L        -       to print same on the printer
+        .SET SYS INIT HELP      -       to print this text upon startup
+        .SET SYS NO INIT        -       to boot without this text default
+
+Note:
+
+	"PROG" and "FILENAME" refer to the specific file you want
+&INFO
+
+        PDP-8  FIELD  SERVICE  DIAGNOSTIC  SYSTEM   . . .   Ver.  5
+
+            - released Jan 1980 by New England District Support -
+
+
+-  For Diagnostic names, type ".HELP DEVICE", where "Device" is the option
+   you want to reference, ie: try ".HELP RK05" and see what happens.
+   For all the diagnostic names, type ".HELP DIAG"
+
+-  Several System Programs such as "DIRECT","BUILD","FUTIL", as well as 
+   various utilities such as "RKUTIL" and "RKCOPY" have HELP files. To review
+   these, type "HELP [Prog name].
+
+-  Before trying to run the program "BUILD.SV", please read the HELP files !
+   This procedure is advised for knowledgable users only ... be sure that you
+   have ".SET SYS NO INIT" before using !
+
+-  For more information, type "HELP MORE"
+&MORE
+	STILL MOORE INFO ON THE SYSTEM ...
+
+
+  -  This is essentially an OS-8 system; all rules apply
+
+  -  There are two (2) printer handlers available for either the LA/LP
+     or the LQP. Type "SET HANDLER LPT=LQP" to enable the LQP handler
+     and "SET HANDLER LQP=LPT" to return to the LA/LP printer.
+
+&ODT
+        ODT
+  
+@CALLING COMMANDS:
+.ODT
+  
+@INTERNAL COMMANDS:
+NNNNN/  OPEN LOC
+/       REOPEN LAST OPENED LOC
+NN<CR>  DEPOSIT NN IN OPEN LOC, CLOSE LOC
+NN<LF>  DEPOSIT NN IN OPEN LOC, CLOSE LOC, OPEN AND DISPLAY NEXT LOC
+NN;...  DEPOSIT NN IN OPEN LOC, CLOSE AND OPEN NEXT LOC
+<CR>    CLOSE PREVIOUSLY OPENED LOC
+<LF>    CLOSE LOC, OPEN NEXT LOC
+N+      OPEN CUR LOC+N
+N-      OPEN CUR LOC-N
+^       CLOSE LOC, OPEN LOC ADDRESSED BY CONTENTS
+_       CLOSE LOC, OPEN POINTED TO BY CONTENTS
+NNG     GO
+NNB     ESTABLISH BREAKPOINT
+B       REMOVE BREAKPOINT
+A       OPEN AC
+L       OPEN LINK
+C       CONTINUE FROM BREAKPOINT
+NNC     CONTINUE, ITERATE NN TIMES
+M       OPEN SEARCH MASK
+ <LF>   OPEN LOWER SEARCH LIMIT
+ <LF>   OPEN UPPER SEARCH LIMIT
+NNW     SEARCH CORE FOR NN MASKED BETWEEN LIMITS
+D       OPEN DATA FIELD (0010=FIELD 1)
+F       OPEN FIELD FOR ^, _, W  (0010=FIELD 1)
+^O      SUPRESS PRINTING
+
+&PIP
+        PIP.SV
+
+@SWITCHES:
+/A      ASCII MODE
+/B      BINARY MODE
+/C      ELIM TRAILING BLANKS
+/D      DELETE OUTPUT FILE BEFORE TRANSFER
+/G      IGNORE ERRORS
+/I      IMAGE MODE
+/O      OKAY TO COMPRESS OR ZERO
+/S      SQUISH
+/T      CONVERT TABS TO SPACES, ETC.
+/V      VERSION #
+/Y      COPY SYSTEM HEAD
+/Z      ZERO OUTPUT DIRECTORY BEFORE TRANSFER
+=N      # OF ADDITIONAL INFO WORDS (/Z OR /S)
+=N      SIZE TO CLOSE OUTPUT FILE (/I)
+
+
+&DUPLIC
+&RXCOPY
+        RXCOPY.SV
+ 
+@CALLING COMMANDS:
+.DUPLIC OUTDEV:<INDEV:
+ 
+@SWITCHES:
+/M      MATCH WITH NO IMPLIED COPY
+/N      COPY WITH NO IMPLIED MATCH
+/P      PAUSE BEFORE AND AFTER ACCESSING DISKS
+/R      READ OUTPUT DEVICE WITH NO IMPLIED COPY OR MATCH
+/V      PRINT VERSION NUMBER
+
+&SET
+        SET.SV
+ 
+@CALLING COMMANDS:
+.SET DEV PARAMETER(S)
+.SET DEV NO PARAMETER(S)
+ 
+@PARAMETERS:
+READONLY        DECLARE DEVICE TO BE READ ONLY
+FILES           DECLARE DEVICE TO BE FILE STRUCTURED
+DVC             CHANGE DEVICE CODES
+VERSION X       CHANGE VERSION
+LOCATION N[=M]  EXAMINE OR CHANGE LOCATIONS
+LV8E            DECLARE LINE PRINTER TO BE AN LV8E
+LA8A            DECLARE LINE PRINTER TO BE LA180 ON DKC8-AA
+LA78            SAME AS .SET LPT NO LA8A
+WIDTH N         SET WIDTH OF LINE PRINTER OR TTY
+LC              DECLARE LINE PRINTER OR TTY TO HAVE LOWER CASE
+ECHO            RESTORE TTY CHARACTER ECHOING
+PAGE            RESTORE TTY ^S AND ^Q FACILITIES
+TAB             IN TTY PRINT TABS (DON'T SIMULATE WITH SPACES)
+FILL            IN TTY APPEND FILL CHARACTERS AFTER TABS
+FLAG            IN TTY FLAG LOWER CASE CHARACTERS
+SCOPE           ERASE CHARACTER ON TTY RUBOUTS
+ESC             PRINT ESC(ASCII 033) WITHOUT CONVERTING IT TO $ SIGN
+ARROW           PRINT CONTROL CHARACTERS WITH UP ARROW (E.G. ^C, ^S)
+HEIGHT [M]      SET TTY SCREEN HEIGHT
+PAUSE [N]       SET TTY PAUSE TIME
+COL N           SET DIRECT TO USE N COLUMNS (.SET TTY COL 2)
+CODE N          CHANGE TTY IOTS OR CARD READER CODES
+PARITY EVEN/ODD SET MAGTAPE PARITY
+OS8             DECLARE SYS TO BE OS/8
+OS78            DECLARE SYS TO BE OS/8
+INIT XXXXX      CAUSE SYS TO EXECUTE XXXXX ON BOOTSTAPPING
+
+&FOTP
+&LIST
+&COPY
+&RENAME
+&TYPE
+&DELETE
+        FOTP.SV
+ 
+@CALLING COMMANDS:
+.COPY DEV:OUTFILE.EX<DEV:INFILE.EX      /* IS WILD NAME OR EXTENSION
+.REN DEV:NEWFILE.EX<DEV:OLDFILE.EX      /? IS WILD CHARACTER
+.DEL DEV:FILE.EX
+.LIST DEV:FILE.EX                       /= .COPY LPT:<DEV:FILE.EX
+.TYPE DEV:FILE.EX                       /= .COPY TTY:<DEV:FILE.EX
+ 
+@SWITCHES:
+/C      MATCH ONLY FILES WITH CURRENT DATE
+/D      DON'T TRANSFER (I.E. AT MOST ONLY DELETE)
+/F      REQUEST NEW DEVICE IF OUT OF ROOM
+/L      TYPE LOG OF INPUT FILENAME MATCHES (*)
+/N      NO PRE-DELETE
+/O      MATCH ONLY FILES WITH OTHER THAN TODAY'S DATE
+/Q      QUERY USER ABOUT FILE BEFORE OPERATION (*)
+/R      RENAME
+/T      USE TODAY'S DATE
+/U      TREAT EACH INPUT SPECIFICATION SEPARATELY
+/V      MATCH FILES NOT OF FORM SPECIFIED
+/W      PRINT VERSION #
+ 
+NOTES:
+ 
+(*)     /D CAUSES LOG OF OUTPUT FILES (IF /L ALSO)
+ 
+IF INDEV: EQUALS OUTDEV:, THEN /N IS FORCED.
+ 
+IF NO INPUT FILE, *.* IS FORCED EXCEPT FOR /D
+IF OUTPUT DEVICE SPECIFIED, BUT NO FILE, *.* IS ASSUMED.
+ 
+^P      ABORT OPERATION, FIX OUTPUT DIRECTORY
+^C      FIX OUTPT DIRECTORY, RETURN TO OS/8
+^O      SUPPRESS TYPEOUT
+
+&FUTIL
+        FUTIL.SV
+
+
+        FUTIL IS AN OS-8 UTILITY PROGRAM THAT IS EXTREMELY USEFUL
+
+        I F   Y O U   K N O W   W H A T   Y O U ' R E   D O I N G
+        --    -----   -------   -------   -----------   ---------
+
+        IT IS EQUALLY AS DANGEROUS IF YOU DON'T !!!!!
+
+
+	There are two (2) useful examples of FUTIL in the file
+        "OS8.TX" on RKB0:
+
+        There is also a rather lengthly file "FUTIL.TX" located on RKB0:
+
+K
+&RKUTIL
+	RKUTIL		RK05  UTILITY PROGRAM
+	------		---------------------
+
+
+
+
+	This utility has several handy options including a 
+
+
+
+	- Disk Copy Program that will copy & verify any 16 sector disk
+
+	- Disk Read Program that will verify that a disk has no CRC errors
+
+	- Disk Formatter Program to format new disks
+
+	- Disk Confidence Test that runs data patterns on a suspect disk
+
+
+&RK05
+&RK05J
+&RK05F
+&RK8E
+&RKS8E
+                        RK05 DISK DRIVE
+                        ---------------
+
+
+        MAINDEC                         FUNCTION
+        -------                         --------
+
+        DHRKAE                  RK8E DISKLESS DIAGNOSTIC
+        DHRKBG                  RK8E/L DRIVE CONTROL TEST
+        DHRKCH                  RK8E/L DISK DATA RELIABILITY TEST
+        DHRKEA                  RK8L INSTRUCTION TEST
+
+        AUVAAA                  RKS8E DISKLESS DIAGNOSTIC
+        AUVBAB                  RKS8E DRIVE CONTROL TEST
+        AUVCAA                  RKS8E DSIK FORMATTER
+        AUVDAB                  RKS8E DISK DATA RELIABILITY TEST
+        AUVEAD                  RKS8E WORD COUNT TEST
+
+        ALIGNX                  RK05 ALIGNMENT ROUTINE
+        RKUTIL                  RK05 UTILITY PACKAGE
+
+&PDP8E
+
+                        PDP-8E  CPU  DIAGNOSTICS
+                        ------------------------
+
+        MAINDEC                         FUNCTION
+        -------                         --------
+
+        DHKAFA                  PDP-8E INSTRUCTION TEST 1
+        DHKAGA                  PDP-8E INSTRUCTION TEST 2
+        DHKAAB                  8E ADDER TESTS
+        DHKABA                  RANDOM "AND" TEST
+        DHKEBB                  KE8E (EAE) INSTRUCTION TEST 1
+        DHKECA                  KE8E (EAE) INSTRUCTION TEST 2
+        DHKPAB                  KP8E POWER FAIL DIAGNOSTIC
+        DGMACB                  PDP-8,8I,8S EXTENDED MEMORY CONTROL TEST
+        DHKLDA                  TELETYPE & KL8 ASYNC DATA CONTROL TESTS
+        DIKLAC                  KL8-JA LOOPBACK TEST
+        DIKLBA                  KL8-JA TELETYPE TEST
+        DHKACA                  MM8E 4K MEMORY CHECKERBOARD
+        DHKADA                  MM8E 4K MEMORY ADDRESS TEST
+        DHKMAD                  EXTENDED MEMORY CHECKERBOARD
+        DHKMCC                  EXTENDED MEMORY ADDRESS TEST
+        DHMPAA                  EXTENDED MEMORY PARITY TEST
+        DHMCAB                  MEMORY EXTENSION & TIME SHARE CONTROL TEST
+
+&PDP8A
+                        PDP-8A  CPU  DIAGNOSTICS
+                        ------------------------
+
+        MAINDEC                         FUNCTION
+        -------                         --------
+
+        DJKKBA                  PDP-8A CPU TEST WITH CONSOLE PACKAGE
+        AJEXCC                  PDP-8A  4K-32K PROCESSOR EXERCISER
+        DJDKAD                  DKC8-AA OPTION TEST #1   (M8316)
+        DJKMAC                  KM8-A OPTION TEST #2   (M8317)
+        DJFPAB                  FPP-8A DIAGNOSTIC
+        DJFPBC                  FPP-8A INSTRUCTION TEST & DATA EXERCISER
+        AJKTAB                  KT8-A MEMORY MGT. DIAGNOSTIC
+        DHKMAD                  EXTENDED MEMORY CHECKERBOARD
+        DHKMCC                  EXTENDED MEMORY ADDRESS TEST
+
+
+&VT78
+                        VT78 - DECSTATION 78  DIAGNOSTICS
+                        ---------------------------------
+
+        MAINDEC                         FUNCTION
+        -------                         --------
+
+        DKVTAA                  VT78 MOS MEMORY DIAGNOSTIC
+        AKVTBB                  VT78 CPU DIAGNOSTIC
+
+&RX01
+&RX02
+&RX8E
+&FLOPPY
+                        RX8 / RX01 FLOPPY DISC DIAGNOSTICS
+                        ----------------------------------
+
+        MAINDEC                         FUNCTION
+        -------                         --------
+
+        AIRXAE                  RX01/RX02   DIAGNOSTIC PROGRAM
+        AIRXBF                  RX01/RX02   DATA RELIABILITY EXERCISER
+
+
+&RL8A
+&RL01
+                        RL01  DISK DIAGNOSTICS
+                        ----------------------
+
+        MAINDEC                         FUNCTION
+        -------                         --------
+
+        AJRLAB                  RL01 DISKLESS DIAGNOSTIC
+        AJRLBB                  RL01 DRIVE CONTROL PART 1
+        AJRLCA                  RL01 DRIVE CONTROL PART 2
+        AJRLDA                  RL01 DRIVE COMPATABILITY VERIFIER
+        AJRLEA                  RL01 PERFORMANCE EXERCISOR
+        AJRLGA                  RL01 PACK VERIFY
+
+
+&TD8E
+&TC01
+&TC08
+                          DECTAPE CONTROL DIAGNOSTICS
+                          ---------------------------
+
+        MAINDEC                         FUNCTION
+        -------                         --------
+
+        TCBASX                  TC01/8 BASIC EXERCISER
+        TCRANX                  TC01/8 RANDOM EXERCISER
+        DHTDAB                  TD8E DECTAPE DIAGNOSTIC
+
+
+&KL8E
+&KL8F
+&KL8J
+&KL8JA
+&KL8M
+&KL8A
+                        TERMINAL CONTROLLER DIAGNOSTICS
+                        -------------------------------
+
+        MAINDEC                         FUNCTION
+        -------                         --------
+
+        AHKLAA                KL8M MODEM CONTROL DIAGNOSTIC
+        DHKLBB   *            KL8M KL8E/F DC08 ON LINE TEST
+        DHKLCD   *            KL8F DOUBLE BUFFERED ASYNC INTERFACE DIAGNOSTIC
+        DHKLDA                PDP-8E TELETYPE & KL8 ASYNC DATA CONTROL TESTS
+        DIKLAC   *            KL8-JA & KL8-KA/KB/KC/KD LOOPBACK TEST
+        DIKLBA                KL8-JA TELETYPE TEST
+        DJKLAD                KL8-A MULTIPLE SERIAL LINE UNIT DIAGNOSTIC
+
+
+
+        *  Indicates diagnostic is on "B" area of disk
+
+&LP05
+&LP01
+&LP02
+&LP04
+&LP14
+&LE8
+&LE8E
+&LS8E
+&LS01
+&LQP8
+&LA180
+&LV8
+&LV8E
+&LV12
+                        PRINTER DIAGNOSTICS
+                        -------------------
+
+        MAINDEC                         FUNCTION
+        -------                         --------
+
+        DILACB                  LA180 PRINTER DIAGNOSTIC
+        DILPAC                  LE8/LP08 LINE PRINTER TEST
+        DILPEC                  LP05/LP08 AND LP14 LINE PRINTER TEST
+        DHLSAC                  LS8 LINEPRINTER TEST
+        DHLQAB                  LQP8 LETTER QUALITY PRINTER DIAGNOSTIC
+        DILVAA   *              LV12/LV8 PRINTER/PLOTTER TEST
+
+
+
+        *  Indicates diagnostic is on "B" area of disk
+
+&LA30
+&LA36
+&VT05
+&VT50
+&VT50H
+&VT52
+&VT55
+&VT8E
+&VT20
+&VT61
+&RT01
+&RT02
+                        TERMINAL DIAGNOSTICS
+                        --------------------
+
+        MAINDEC                         FUNCTION
+        -------                         --------
+
+        AILABE                  LA36 DIAGNOSTIC
+        DHVTCD                  VT50/52 ACCEPTANCE TEST
+        DHLAAB   *              DECWRITER  (LA30) EXERCISER 
+        DGV5AB   *              VT05 TERMINAL DIAGNOSTIC
+        DHVCAA   *              VC8E DISPLAY DIAGNOSTIC
+        DHVTAB   *              VT8E VIDEO DISPLAY TEST 1
+        DHVTBA   *              VT8E VIDEO DISPLAY TEST 2
+        DHVTDA   *              VT61 TERMINAL ACCEPTANCE TEST
+        DIVTCA   *              VT55 VIDEO TERMINAL ACCEPTANCE TEST
+        DIVTBA   *              VT20 HOST COMPUTER PROGRAM
+        DIRTAB   *              RT01/RT02 TERMINAL DIAGNOSTIC
+
+
+
+        *  Indicates diagnostic is on "B" area of disk
+
+
+&DIRECT
+        DIRECT.SV
+
+@Calling commands:
+.DIR dev:LISTFILE.DI<dev:FILETYPE               /* is wild name or extension
+.DIR FILETYPE                                   /? is wild character
+
+@Switches:
+/A      alphabetize directory before processing
+/B      include starting block numbers (octal)
+/C      list only files with the current date
+/D      sort files by date, then alphabetically
+/E      include empties in the listing
+/F      fast mode (no lengths or dates)
+/H      print contents of the header block
+/I      print additional information words (octal)
+/M      list only the empties and the file summary
+/N      print dates in numeric form (mm/dd/yy)
+/O      list only files with other than today's date
+/P      page after each listing
+/R      list remainder of files after the first one
+/T      print the most timely (recent) files first
+/U      treat each input specification separately
+/V      list files not of the form specified
+/W      print the version number
+/X      alphabetize by extension, then by name
+=n      use n columns - output is ordered by column
+
+&DIAG
+
+	PDP-8  DIAGNOSTIC  CROSS  REFERENCE  LIST
+
+
+
+        Maindec                    Option
+        -------                    ------
+
+        AHKLAA                  KL8M MODEM CONTROL DIAGNOSTIC
+        AILABE                  LA36 DIAGNOSTIC
+        AIRXAE                  RX01/RX02   DIAGNOSTIC PROGRAM
+        AIRXBF                  RX01/RX02   DATA RELIABILITY EXERCISER
+        AJEXCC                  PDP-8A  4K-32K PROCESSOR EXERCISER
+        AJKTAB                  KT8-A MEMORY MGT. DIAGNOSTIC
+        AJRLAB                  RL01 DISKLESS DIAGNOSTIC
+        AJRLBB                  RL01 DRIVE CONTROL PART 1
+        AJRLCA                  RL01 DRIVE CONTROL PART 2
+        AJRLDA                  RL01 DRIVE COMPATABILITY VERIFIER
+        AJRLEA                  RL01 PERFORMANCE EXERCISOR
+        AJRLGA                  RL01 PACK VERIFY
+        AKVTBB                  VT78 CPU DIAGNOSTIC
+        ALIGNX                  RK05 ALIGNMENT ROUTINE
+        AUVAAA                  RKS8E DISKLESS DIAGNOSTIC
+        AUVBAB                  RKS8E DRIVE CONTROL TEST
+        AUVCAA                  RKS8E DSIK FORMATTER
+        AUVDAB                  RKS8E DISK DATA RELIABILITY TEST
+        AUVEAD                  RKS8E WORD COUNT TEST
+        DGMACB                  PDP-8,8I,8S EXTENDED MEMORY CONTROL TEST
+        DGV5AB   *              VT05 TERMINAL DIAGNOSTIC
+        DHADAA   *              AD8E,AM8E,A-D CONVERTER & MUX DIAGNOSTIC
+        DHCMAA   *              CM8F OPTICAL CARD READER TEST
+        DHCRAA   *              CR8E/CR8F CARD READER TEST
+        DHDHAA   *              DH8E HOST PROGRAM
+        DHDHCA   *              DH8E REMOTE LOADER PROGRAM
+        DHDKAA   *              DK8E CLOCKS DIAGNOSTIC
+        DHDPAD   *              DP8-EA SYNC MODEM INTERFACE DIAGNOSTIC
+        DHDRAB   *              DR8-EA 12 CHANNEL BUFFERED DIGITAL INTERFACE
+        DHDRHA   *              DR8-ED EXERCISER
+        DHICAA   *              ICS FIELD TEST PROGRAM
+        DHKAAB                  8E ADDER TESTS
+        DHKABA                  RANDOM "AND" TEST
+        DHKACA                  MM8E 4K MEMORY CHECKERBOARD
+        DHKADA                  MM8E 4K MEMORY ADDRESS TEST
+        DHKAFA                  PDP-8E INSTRUCTION TEST 1
+        DHKAGA                  PDP-8E INSTRUCTION TEST 2
+        DHKEBB                  KE8E (EAE) INSTRUCTION TEST 1
+        DHKECA                  KE8E (EAE) INSTRUCTION TEST 2
+        DHKGAB   *              KG8-EA DIAGNOSTICS
+        DHKLBB   *              KL8M KL8E/F DC08 ON LINE TEST
+        DHKLCD   *              KL8F DOUBLE BUFFERED ASYNC INTERFACE
+        DHKLDA                  TELETYPE & KL8 ASYNC DATA CONTROL TESTS
+        DHKLDA                  PDP-8E TELETYPE & KL8 ASYNC DATA CONTROL TESTS
+        DHKMAD                  EXTENDED MEMORY CHECKERBOARD
+        DHKMCC                  EXTENDED MEMORY ADDRESS TEST
+        DHKPAB                  KP8E POWER FAIL DIAGNOSTIC
+        DHLAAB   *              DECWRITER  (LA30) EXERCISER 
+        DHLQAB                  LQP8 LETTER QUALITY PRINTER DIAGNOSTIC
+        DHLSAC                  LS8 LINEPRINTER TEST
+        DHMCAB                  MEMORY EXTENSION & TIME SHARE CONTROL TEST
+        DHMPAA                  EXTENDED MEMORY PARITY TEST
+        DHPCAA                  HIGHSPEED READER/PUNCH TESTS
+        DHRKAE                  RK8E DISKLESS DIAGNOSTIC
+        DHRKBG                  RK8E/L DRIVE CONTROL TEST
+        DHRKCH                  RK8E/L DISK DATA RELIABILITY TEST
+        DHRKEA                  RK8L INSTRUCTION TEST
+        DHTAAC   *              TA8E CASSETTE DIAGNOSTIC
+        DHTABC   *              TA8E CASSETTE RELIABILITY TEST
+        DHTDAB                  TD8E DECTAPE DIAGNOSTIC
+        DHTMAB   *              TM8-E CONTROL TEST PART 1
+        DHTMBB   *              TM8-E CONTROL TEST PART 2
+        DHTMCA   *              TM8-E DRIVE FUNCTION TIMER
+        DHTMDB   *              TM8-E DATA RELIABILITY  ( 9 TRACK )
+        DHTMEB   *              TM8-E DATA RELIABILITY  ( 7 TRACK )
+        DHTMFC   *              TM8-E RANDOM EXERCISER
+        DHTSAB   *              TM8-E/TS03 CONTROL TEST PART 1
+        DHTSBB   *              TM8-E/TS03 CONTROL TEST PART 2
+        DHTSCB   *              TM8-E/TS03 DATA RELIABILITY
+        DHTSDB   *              TM8-E/TS03 MULTIDRIVE DATA RELIABILITY 
+        DHTSEA   *              TM8-E/TS03 DRIVE FUNCTION TIMER
+        DHVCAA   *              VC8E DISPLAY DIAGNOSTIC
+        DHVTAB   *              VT8E VIDEO DISPLAY TEST 1
+        DHVTBA   *              VT8E VIDEO DISPLAY TEST 2
+        DHVTCD                  VT50/52 ACCEPTANCE TEST
+        DHVTDA   *              VT61 TERMINAL ACCEPTANCE TEST
+        DIADFA   *              UDC08 ANALOG INPUT EXERCISER
+        DIAFBA   *              AFC-8 DIAGNOSTIC  (UNIPOLAR)
+        DIDBAA   *              DB8-E INTERPROCESSOR BUFFER TEST
+        DIDFAC   *              DF32D DISCLESS LOGIC TEST
+        DIDFBA   *              DF32 DISCLESS LOGIC TEST
+        DIDFCA   *              DF32 / DF32D DISK DATA, INTERFACE TEST
+        DIKLAC                  KL8-JA LOOPBACK TEST
+        DIKLAC   *              KL8-JA & KL8-KA/KB/KC/KD LOOPBACK TEST
+        DIKLBA                  KL8-JA TELETYPE TEST
+        DIKLBA                  KL8-JA TELETYPE TEST
+        DILACB                  LA180 PRINTER DIAGNOSTIC
+        DILPAC                  LE8/LP08 LINE PRINTER TEST
+        DILPEC                  LP05/LP08 AND LP14 LINE PRINTER TEST
+        DILTCA   *              LPC8 PHOTOCOMP INTERFACE DIAGNOSTIC
+        DILTDA   *              LPD8 PHOTOCOMP INTERFACE DIAGNOSTIC
+        DILVAA   *              LV12/LV8 PRINTER/PLOTTER TEST
+        DIRTAB   *              RT01/RT02 TERMINAL DIAGNOSTIC
+        DITCBA   *              TC58 DRIVE FUNCTION TIMER
+        DITCCA   *              TC58 RANDOM EXERCISER
+        DITCDA   *              TC58 INSTRUCTION TEST PART 1
+        DIUDAC   *              UDC-8 SYSTEM FUNCTION EXERCISER
+        DIVTBA   *              VT20 HOST COMPUTER PROGRAM
+        DIVTCA   *              VT55 VIDEO TERMINAL ACCEPTANCE TEST
+        DJADAC   *              A/D CONVERTER MUX DIAGNOSTIC
+        DJDKAD                  DKC8-AA OPTION TEST #1   (M8316)
+        DJFPAB                  FPP-8A DIAGNOSTIC
+        DJFPBC                  FPP-8A INSTRUCTION TEST & DATA EXERCISER
+        DJKKBA                  PDP-8A CPU TEST WITH CONSOLE PACKAGE
+        DJKLAD                  KL8-A MULTIPLE SERIAL LINE UNIT DIAGNOSTIC
+        DJKMAC                  KM8-A OPTION TEST #2   (M8317)
+        DJVKAB   *              VK8-A INTERNAL LOGIC/DISPLAY DIAGNOSTIC
+        DKVTAA                  VT78 MOS MEMORY DIAGNOSTIC
+        RKUTIL                  RK05 UTILITY PACKAGE
+        TCBASX                  TC01/8 BASIC EXERCISER
+        TCRANX                  TC01/8 RANDOM EXERCISER
+        TYPSET   *              PDP8 TYPESET DIAGNOSTIC
+
+
+
+
+
+        *  Indicates diagnostic is on "B" area of disk
+
+
+&
+
+This indicates the end of the HELP.HL file !
+
+It MUST be located as the last thing on the file !
+
+
