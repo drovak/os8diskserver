@@ -7,6 +7,12 @@
 //
 //	Press ctrl-C to stop the server.
 //
+//	2/10/21 V1.4 Vince Slyngstad
+//	---------------------------
+//
+//	Added support for the modified HELP loader compatible bootstrap.
+//	Version number bumped to 1.4.
+//
 //	2/1/21 V1.3 Vince Slyngstad
 //	---------------------------
 //
@@ -258,7 +264,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	printf("PDP-8 Disk Server for OS/8, v1.3\n");
+	printf("PDP-8 Disk Server for OS/8, v1.4\n");
 
 	if (!use_disk1)
 	{
@@ -355,6 +361,125 @@ int main(int argc, char* argv[])
 		printf(MAKE_GREEN "Bootloader sent\n" RESET_COLOR);
 	}
 
+
+void
+HELPBoot()
+{
+	// If BOOT1 is toggled in and started,
+	// BOOT2 is sent in HELP loader format.
+	int boot2[] = {
+//		00000, // Must be 0, not sent
+		00000, // Must have 01000 clear
+		00000, 05032,
+		07032, 07012, 01003, 03036,
+		04020, 03002, 04020, 03013,
+		05010, 00000, 00000, 00000,
+		00000, 04032, 07006, 07006,
+		07006, 03000, 04032, 01000,
+		03030,
+		05004-1, // Decrement because of ISZ
+		00000,   // Send NUL to get to JMP
+	};
+	// BOOT3 is then sent in BOOT2 loader format, followed
+	// by the important parts of block 0 in BOOT3 format.
+	int boot3[] = {
+		05420, 00000, 03402,	// Actually the required patch
+		00041, 04020,		// BOOT3 proper
+		00042, 03002,
+		00043, 04020,
+		00044, 03001,
+		00045, 04020,
+		00046, 03047,
+		00047, 00000,
+		00050, 04020,
+		00051, 03402,
+		00052, 02002,
+		00053, 07000,
+		00054, 02001,
+		00055, 05050,
+		00056, 05041,
+		00014, 05041,		// Kludge to start BOOT3
+	};
+	int i;
+
+	// This cooperates with a bootloader based on
+	// the HELP loarder.
+	printf("Booting...\n");
+	if (boot2[0] & 04) {
+		fprintf(stderr, MAKE_RED "Illegal initial word\n" RESET_COLOR);
+		return;
+	}
+	for (i = 0; i < sizeof(boot2)/sizeof(*boot2); i++) {
+		unsigned int intval;
+		unsigned char byteval;
+		int link;
+
+		if (boot2[i] & 0740) {
+			fprintf(stderr, MAKE_RED "Illegal bit set in %04o at %04o\n" RESET_COLOR,
+					boot2[i], i);
+			return;
+		}
+		link = 0;
+		if (i+1 < sizeof(boot2)/sizeof(*boot2))
+			link = boot2[i+1] & 01000;
+		intval = (link<<3) | boot2[i];
+		byteval = (intval<<3) | (intval >> 10);
+//		fprintf(stderr, "%03o %05o\n", byteval, intval);
+		if (transmit_buf(&byteval, 1))
+			fprintf(stderr, MAKE_RED "Error: failed to send byte!\n" RESET_COLOR);
+	}
+	for (i = 0; i < sizeof(boot3)/sizeof(*boot3); i++) {
+//		fprintf(stderr, "%03o\n%03o\n", boot3[i]>>6, boot3[i]&077);
+		disk_buf[0] = boot3[i] >> 6;
+		disk_buf[1] = boot3[i] & 077;
+		if (transmit_buf(disk_buf, 2))
+			fprintf(stderr, MAKE_RED "Warning: failed to send word!\n" RESET_COLOR);
+	}
+	if (!read_from_file(disk1, 0, disk_buf, BLOCK_SIZE * BYTES_PER_WORD))
+	{
+		djg_to_pdp(disk_buf, converted_disk_buf, BLOCK_SIZE);
+		// converted_disk_buf is sent as two
+		// blocks in BOOT3 format.
+		// Prepend the field 1 stuff with
+		// address, wc, and CDF 1.
+		// Address
+		converted_disk_buf[044*2+0] = 076;
+		converted_disk_buf[044*2+1] = 047;
+		// WC
+		converted_disk_buf[045*2+0] = 076;
+		converted_disk_buf[045*2+1] = 047;
+		// Field 1
+		converted_disk_buf[046*2+0] = 062;
+		converted_disk_buf[046*2+1] = 011;
+//BUGBUG: THIS ISN'T WORKING YET!!
+		if (!transmit_buf(converted_disk_buf+044*BYTES_PER_WORD, 0131*BYTES_PER_WORD+6))
+		{
+			converted_disk_buf[0175*2+0] = 076; // Address
+			converted_disk_buf[0175*2+1] = 000;
+			converted_disk_buf[0176*2+0] = 076; // WC
+			converted_disk_buf[0176*2+1] = 000;
+			converted_disk_buf[0177*2+0] = 062; // Field 1
+			converted_disk_buf[0177*2+1] = 001;
+			if (!transmit_buf(converted_disk_buf+0175*BYTES_PER_WORD, 0200*BYTES_PER_WORD+6))
+			{
+				converted_disk_buf[0*2+0] = 076; // Address
+				converted_disk_buf[0*2+1] = 005;
+				converted_disk_buf[1*2+0] = 076; // WC
+				converted_disk_buf[1*2+1] = 005;
+				converted_disk_buf[2*2+0] = 054; // Field 1
+				converted_disk_buf[2*2+1] = 002;
+				if (!transmit_buf(converted_disk_buf, 6))
+					printf(MAKE_GREEN "Done sending OS/8 bootstrap\n" RESET_COLOR);
+				else
+					fprintf(stderr, MAKE_RED "Warning: failed to start OS/8!\n" RESET_COLOR);
+			} else
+				fprintf(stderr, MAKE_RED "Warning: failed to send driver content!\n" RESET_COLOR);
+		} else
+			fprintf(stderr, MAKE_RED "Warning: failed to send block 0!\n" RESET_COLOR);
+	} else
+		fprintf(stderr, MAKE_RED "Warning: failed to read block 0!\n" RESET_COLOR);
+}
+
 /*
 // Command processor
 // Accepts the following wakeup commands:
@@ -371,6 +496,9 @@ int main(int argc, char* argv[])
 		receive_buf(buf, 1); //wait for command
 		switch (buf[0])
 		{
+			case '\000': ;
+				HELPBoot();
+				break;
 			case '@':
 				printf("Booting...\n");
 				if (!read_from_file(disk1, 0, disk_buf, BLOCK_SIZE * BYTES_PER_WORD))
