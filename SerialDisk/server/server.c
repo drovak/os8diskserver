@@ -7,6 +7,12 @@
 //
 //	Press ctrl-C to stop the server.
 //
+//	3/1/21 V1.5 Vince Slyngstad
+//	---------------------------
+//
+//	Fixed a bug reported by Don North where baud rates in excess of
+//	38400 caused a segmentation fault.
+//
 //	2/10/21 V1.4 Vince Slyngstad
 //	---------------------------
 //
@@ -340,10 +346,12 @@ int main(int argc, char* argv[])
 	}
 	
 	setup_config(&baud,&two_stop,serial_dev);
-	fd = init_comm(serial_dev,baud,two_stop);
 	
 	printf("Using serial port %s at %s with %s\n", 
-		serial_dev, baud_lookup[baud - 1].baud_str, (two_stop ? "2 stop bits" : "1 stop bit"));
+		serial_dev, baud_lookup[baud].baud_str, (two_stop ? "2 stop bits" : "1 stop bit"));
+
+	baud = baud_lookup[baud].baud_val;
+	fd = init_comm(serial_dev,baud,two_stop);
 
 	if (send_btldr)
 	{
