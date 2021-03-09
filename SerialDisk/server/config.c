@@ -76,6 +76,7 @@ void setup_config(long* baud, int* two_stop, char* serial_dev)
 		if (strcmp(baud_lookup[cntr].baud_str, baud_rate) == 0)
 		{
 			*baud = baud_lookup[cntr].baud_val;
+			break;
 		}
 	}
 	if (*baud == B0)
@@ -83,6 +84,7 @@ void setup_config(long* baud, int* two_stop, char* serial_dev)
 		printf("Unknown baud rate %s\n",baud_rate);
 		exit(1);
 	}
+	*baud = cntr;
 
 	fscanf(config, "%d", two_stop);
 	fscanf(config, "%s", serial_dev);
