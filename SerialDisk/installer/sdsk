@@ -1,5 +1,6 @@
 #!/bin/bash
 TOOLS=../tools export TOOLS
+PATH=$TOOLS:/bin:/usr/bin export PATH
 
 # BEWARE: This script requires os8xplode, bin2bn, os8implode, mkdsk, 
 # (all of which require Perl), socat, expect, and SIMH all to be
