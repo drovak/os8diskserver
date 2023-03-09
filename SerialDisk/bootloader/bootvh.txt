@@ -1,0 +1,16 @@
+Volker Herrmann did some modifications of the source for the os8v4 version
+of the "boot" command.  This command is used in OS/8 to switch from one
+system device to another (by essentially rebooting).
+
+This new version implements
+	.BOOT/SD
+in addition to the other V4 device additions.
+
+The source file is bootvh.pa.  I have also extracted the corresponding
+"boot.sv" and placed it here.  (It is packed so that every 3 bytes is a
+pair of words, using the OS/8 bit ordering.)
+
+Volker's web page about it is here:
+https://retrobyte.de/boot.sv.html
+
+	Vince

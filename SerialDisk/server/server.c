@@ -7,6 +7,13 @@
 //
 //	Press ctrl-C to stop the server.
 //
+//	2/11/22 V1.6 Vince Slyngstad
+//	---------------------------
+//
+//	Fixed a bug reported by Mike Katz where interrupting with ^C
+//	and requesting an exit was attempting to close null FILE pointers.
+//	Version number bumped to 1.6.
+//
 //	3/1/21 V1.5 Vince Slyngstad
 //	---------------------------
 //
@@ -270,7 +277,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	printf("PDP-8 Disk Server for OS/8, v1.4\n");
+	printf("PDP-8 Disk Server for OS/8, v1.6\n");
 
 	if (!use_disk1)
 	{
@@ -491,6 +498,7 @@ HELPBoot()
 /*
 // Command processor
 // Accepts the following wakeup commands:
+// NUL	- Send the HELPBoot loader
 // @	- read the first sector/first side/first disk (boot sector)
 // A	- process command to first side of first disk
 // B	- process command to second side of first disk
@@ -662,10 +670,14 @@ void int_handler(int sig)
 	c = getchar();
 	if (c == 'y' || c == 'Y')
 	{
-		fclose(disk1);
-		fclose(disk2);
-		fclose(disk3);
-		fclose(disk4);
+		if (disk1)
+			fclose(disk1);
+		if (disk2)
+			fclose(disk2);
+		if (disk3)
+			fclose(disk3);
+		if (disk4)
+			fclose(disk4);
 		exit(0);
 	}
 	else
