@@ -1,0 +1,80 @@
+#!/bin/bash
+#
+#  Update the apt database
+#
+echo -e "\r\nUpdating apt database\r\n"
+sudo apt update -y
+#
+#  Install perl if necessary
+#
+echo -e "\r\nVerifying  perl installation\r\n"
+if ! type -p perl &>/dev/null ; then
+        echo -e "\r\nInstalling perl\r\n"
+	sudo apt install perl -y
+fi
+#
+#  Install socat if necessary
+#
+echo -e "\r\nVerifying socat installation\r\n"
+if ! type -p socat &>/dev/null ; then
+        echo -e "\r\nInstalling socat\r\n"
+	sudo apt install socat -y
+fi
+#
+#  Install expect if necessary
+#
+echo -e "\r\nVerifying  expect installation\r\n"
+if ! type -p expect &>/dev/null ; then
+        echo -e "\r\nInstalling expect\r\n"
+	sudo apt install expect -y
+fi
+#
+#  Install git if necessary
+#
+echo -e "\r\nVerifying git installation\r\n"
+if ! type -p git &>/dev/null ; then
+        echo -e "\r\nInstalling git\r\n"
+	sudo apt install git -y
+fi
+#
+#  install gcc if necessary
+#
+echo -e "\r\nVerifing gcc installation\r\n"
+if ! type -p gcc &>/dev/null ; then
+	echo -e "\r\nInstalling gcc\r\n"
+	sudo apt install gcc -y
+fi
+#
+#  Install libpcre3-dev (this is used by simh)
+#
+echo -e "\r\nVerifying libpcre3-dev installation\r\n"
+if ! dpks - s 'libpcre3-dev' &>/dev/null ; then
+	echo -e "\r\nInstalling libpcre3-dev\r\n"
+	sudo apt install libpcre3-dev -y
+fi
+#
+#  Install libedit-dev (this is used by simh)
+#
+echo -e "\r\nVerifying libedit-dev installation\r\n"
+if ! dpks - s 'libedit-dev' &>/dev/null ; then
+	echo -e "\r\nInstalling libedit-dev\r\n"
+	sudo apt install libedit-dev -y
+fi
+#
+#  Install serial disk in the current directory.
+#
+#  If os8disk exsits it will be renamed first
+#
+echo -e "\r\nChecking for prior installation of os8diskserver\r\n"
+if [ -d os8diskserver ]; then
+        echo -e "\r\nRenaming existing osdiskserver folder\r\n"
+	now=`date +"%Y%m%d%H%M"`
+	mv os8diskserver os8diskserver-${now}
+fi
+#
+#  Clone the os8diskserver repository
+#
+echo -e "\r\nCloning os8diskserver repository\r\n"
+git clone https://github.com/drovak/os8diskserver
+echo -e "\r\n\r\nos8diskserver environment verified and repository cloned\r\n"
+echo -e "\r\nuse: sudo ./makeos8diskserver to build os8diskserver\r\n"

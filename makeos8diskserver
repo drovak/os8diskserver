@@ -1,0 +1,79 @@
+#!/bin/bash
+#
+#  force recompile of pal.c
+#
+cd os8diskserver/SerialDisk/tools
+if [ -f pal ]; then
+	echo -e "\r\nRemoving existing pal executable"
+	rm pal
+fi
+#
+#  compile pal.c
+#
+echo -e "\r\nCompiling pal.c\r\n"
+gcc pal.c -o pal
+#
+#  Force the recompile of server.c
+#
+cd ../server
+if [ -f server ] ; then
+	echo -e "\r\nRemoving existing server executable"
+	rm server
+fi
+echo -e "\r\nCompiling server"
+make -f Makefile
+#
+# install simh in the simh folder
+#
+cd ../simh
+echo -e "\r\nInstalling simh"
+git clone https://github.com/simh/simh
+#
+#  Build the pdp8 simulator
+#
+echo -e "\r\nBuilding the PDP-8 simulator.  This might take some time\r\n"
+cd simh
+make BIN/pdp8
+#
+#  Copy the pdp8 simulator to the installer tools directory
+#
+echo -e "\r\nCopying the PDP-8 simulator to the installer directory"
+cp BIN/pdp8 ../../tools
+#
+#  run sdsk
+#
+echo -e "\r\n\nBuilding OS/8 image"
+echo -e "\r\nPlease read README.md, SIMH.md & SDSK.md in the ../os8diskserver/Server/installer/ directory\r\n\r\n"
+cd ../../installer
+./sdsk
+#
+#  Create default startup script
+#
+echo "./server -1 ../installer/diagpack2.new -2 ../disks/diag-games-kermit.dsk -3 ../disks/diagpack2_new2.dsk -4 ../disks/diagpack2.dsk" > ../server/StartServer
+chmod +777 ../server/StartServer
+#
+#  Display final message
+#
+echo -e "\r\n\r\nSerialDisk is now installed in ~/os8diskserver.  Any previous version"
+echo -e "of that directory has been renamed with todays date and time"
+echo -e "\r\nPlease modify the ~/os8diskserver/SerialDisk/server/disk.cfg file for your serial port and baud rate."
+echo -e "To start Serial Disk run ./StartServer in ~/os8diskserver/SerialDisk/server/."
+echo -e "This will start Serial Disk with the following drives assigned (if you boot from SerialDisk):"
+echo -e "  SYS:  ../installer/diagpack2.0"
+echo -e "  DSK:  ../installer/diagpack2.0"
+echo -e "  SDA0: ../installer/diagpack2.0"
+echo -e "  SDB0: ../installer/diagpack2.1"
+echo -e "  SDA1: ../disks/diag-games-kermit.0"
+echo -e "  SDB1: ../disks/diag-games-kermit.1"
+echo -e "  SDA2: ../disks/diagpack2_new2.0"
+echo -e "  SDB2: ../disks/diagpack2_new2.1"
+echo -e "  SDA3: ../disks/diagpack2.0"
+echo -e "  SDB3: ../disks/diagpack2.1"
+echo -e "  RFB0: ../disks/diagpack2_new2.0"
+echo -e "  RFB1: ../disks/diagpack2.0\r\n\r\n"
+
+
+
+
+
+

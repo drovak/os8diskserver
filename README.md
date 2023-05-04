@@ -4,7 +4,7 @@
 
 This suite of programs allows anyone with a PDP-8/E or later to communicate with
 a modern computer running Linux, Mac OS X, Windows with Cygwin, or any other
-POSIX-compliant system where a standard C compiler such as gcc exists. 
+POSIX-compliant system where a standard C compiler such as gcc exists.
 
 ### TERMS OF USE ###
 
@@ -14,7 +14,7 @@ or implied.
 I encourage the use of this software in any non-commercial or commercial
 applications, but in fairness to other users and the developer, any changes for
 improving the functionality of this program should be documented for others to
-take note of. 
+take note of.
 
 ### REQUIREMENTS ###
 
@@ -33,9 +33,20 @@ OS/8 using BUILD. The modern computer needs to support the disk server, which is
 easily compiled with gcc. The PDP-8 assembly files have been built with David
 Gesswein's palbart assembler, as well as PAL8 under OS/8.
 
-The disk server utilizes the standard dumprest/simh RK05 disk image format. 
-These images are exactly 3,325,952 bytes long, which is 1,662,976 12-bit words 
-packed in 16 bits per word. The first half of the image corresponds to side 0, and the second half, side 1. Typically, in OS/8 systems, SYS: is side 0. 
+The disk server utilizes the standard dumprest/simh RK05 disk image format.
+These images are exactly 3,325,952 bytes long, which is 1,662,976 12-bit words
+packed in 16 bits per word. The first half of the image corresponds to side 0, and the second half, side 1. Typically, in OS/8 systems, SYS: is side 0.
+
+There are two shell scripts included in this repository.  They have been written for and tested on Rabpberry Pi Debian Buster and Bullseye.
+If you want you can download just these two scripts and they will take care of everything else for you.
+
+
+getos8diskserver	This script verifies all of the requirements for installing and building OS/8 Serial Disk and installs anything that isn't found.
+			It then checks for an existing installation of OS/8 Serial disk, renames it if one is found, and then clones this repository locally.
+		      If you are unfamiliar with git and cloning a repository or don't feel like going through the entire process use this script.
+             	Note:  This does require the user to have sudo rights to install any prerequisite packages.
+
+makeos8diskserver	This script handles all of the manual steps of building OS/8 Disk Server and also creates a default startup script for OS/8 Serial Disk.
 
 ### SPECIAL THANKS ###
 
