@@ -35,7 +35,7 @@ rm -f $image.0/built.sv
 # new disk image.
 # BEWARE: The files get placed back on the disk in alphabetical
 # order, because that's how os8implode enumerated them.
-os8implode $image
+os8implode -rk $image
 mkdsk $image.xml+
 
 #

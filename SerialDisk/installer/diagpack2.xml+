@@ -1,5 +1,5 @@
-<image name='diagpack2.new' size=014540>
-<os8fs name='diagpack2.0' base=00 size=06260>
+<image name='diagpack2.new' size=6496>
+<os8fs name='diagpack2.0' base=00 size=3248>
 <directory>
 <file name='diagpack2.0/absldr.sv' start=070 end=075 mode=binary></file>
 <file name='diagpack2.0/adrstt.bx' start=076 end=0101 mode=text></file>
@@ -213,7 +213,7 @@
 <file name='diagpack2.0/.td8e' start=066 end=066 mode=binary></file>
 <file name='diagpack2.0/.cclo' start=067 end=067 mode=binary></file>
 </os8fs>
-<os8fs name='diagpack2.1' base=06260 size=06260>
+<os8fs name='diagpack2.1' base=3248 size=3248>
 <directory>
 <file name='diagpack2.1/absldr.sv' start=070 end=075 mode=binary></file>
 <file name='diagpack2.1/advent.da' start=076 end=0316 mode=text></file>

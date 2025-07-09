@@ -93,13 +93,13 @@ sub copyout {
         die "$d/$f not integer blocksize: $size\n" if ($mode eq "binary") && ($size % 384);
         $size = int(($size + 383) / 384);
         $end = $sblk + $size - 1;
-        die "Too may blocks for $d: $f" if $end >= 06260;
+        die "Too many blocks for $d: $f" if $end >= $fsize;
         printf XML "<file name='$d/$f' start=0%o end=0%o mode=$mode></file>\n", $sblk, $end;
         $sblk = $end + 1;
     }
     # Emit an empty for the remaining space, if any.
-    return if $sblk == 06260;
-    $end = 06260 - 1;
+    return if $sblk == $fsize;
+    $end = $fsize - 1;
     printf XML "<file name='$d/.$sblk' start=0%o end=0%o mode=binary></file>\n", $sblk, $end;
 }
 
@@ -124,12 +124,39 @@ sub bplate {
     print XML "<file name='$d/.cclo' start=067 end=067 mode=binary></file>\n";
 }
 
+#
+# Volume size options
+# TODO: Add support for RL01, RL02 (up to 5 partitions!)
+$vsize{"rk05"} = 014540; # 2x3248 blocks
+$vsize{"rk"}   = 014540; # 2x3248 blocks
+$vsize{"rx01"} = 00756; # 494 blocks
+$vsize{"rx1"}  = 00756; # 494 blocks
+$vsize{"rx02"} = 01734; # 988 blocks
+$vsize{"rx2"}  = 01734; # 988 blocks
+$vsize{"dt"}   = 01341; # 737 blocks
+$vsize{"ltb"}  = 01600; # 896 blocks
+$vsize{"ltp"}  = 01400; # 768 blocks
+$vsize{"lts"}  = 01000; # 512 blocks
+$vsize{"lt"}   = 01000; # 512 blocks
+
+$fsize = 06260; $vsize = 014540; # Default to RK05
 foreach $d (@ARGV) {
+    $next = 0;
+    foreach $dev (keys %vsize) {
+      if ($d =~ /^-$dev/) {
+        $fsize = $vsize = $vsize{$dev};
+        $next = 1;
+        last;
+      }
+    }
+    next if $next;
+    # BUGBUG: Should probably special case RL drives here.
+    $fsize = 06260 if $fsize > 07777;
     $f =~ s/.xml$//; $f =~ s/.[0-9]$//;
     open(XML, ">$d.xml+") || die "$d.xml+: $!";
-    print XML "<image name='$d.new' size=014540>\n";
-    print XML "<os8fs name='$d.0' base=00 size=06260>\n";
-    # BUGBUG: Should rather loop here, instead of exactly twice.
+    print XML "<image name='$d.new' size=$vsize>\n";
+    print XML "<os8fs name='$d.0' base=00 size=$fsize>\n";
+    # BUGBUG: Should rather loop here.
     $sysfs = &isSystem("$d.0");
     @dir = &getdir("$d.0");
     print XML "<directory>\n";
@@ -137,13 +164,15 @@ foreach $d (@ARGV) {
     print XML "</directory>\n";
     &bplate("$d.0");
     print XML "</os8fs>\n";
-    print XML "<os8fs name='$d.1' base=06260 size=06260>\n";
-    $sysfs = &isSystem("$d.1");
-    @dir = &getdir("$d.1");
-    print XML "<directory>\n";
-    &copyout($sysfs? 070 : 07, "$d.1", @dir);
-    print XML "</directory>\n";
-    &bplate("$d.1");
-    print XML "</os8fs>\n";
+    if ($vsize > $fsize) {
+      print XML "<os8fs name='$d.1' base=$fsize size=$fsize>\n";
+      $sysfs = &isSystem("$d.1");
+      @dir = &getdir("$d.1");
+      print XML "<directory>\n";
+      &copyout($sysfs? 070 : 07, "$d.1", @dir);
+      print XML "</directory>\n";
+      &bplate("$d.1");
+      print XML "</os8fs>\n";
+    }
     print XML "</image>\n";
 }

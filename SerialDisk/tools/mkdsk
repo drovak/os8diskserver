@@ -128,12 +128,15 @@ sub copyout {
     binmode(FILE);
     local($buf, @ibuf, @obuf);
     local($mode, $eof, $eofpos) = (0, 0, 0);
+    $mode = 1 if $f =~ m:/[.]:;
+    $mode = 1 if $f =~ m:[.]sy$:;
     # Check that the file fits in the allocated space!
     local($blks) = int(((-s $f)+383) / 384);
     if ($blks != $last-$start+1) {
         die "$f doesn't fit the allocated space!\n" if $blks != $last-$start+1;
     }
     # Unpack the file as if binary.
+    $eol = $eolfail = 0;
     for ($first = $start; $first <= $last; $first++) {
         # Read a (packed, 384 byte) block.
         read(FILE, $buf, 384) || die "read($f): $!";
@@ -152,7 +155,16 @@ $foo = ".rsvd";
             $c2 = shift @ibuf;
             $c3 = shift @ibuf;
 #warn "$f: $c1 $c2 $c3\n" if $f =~ /$foo/;
-            # Worry about it is truly text mode.
+            if ($mode == 0) { # Worry about newlines in text files
+              # BUGBUG: This detects missing CR, but not misplaced ones.
+              $eolfail = 1 if !$eol && $c1 == 012;
+              $eol = ($c1 == 015); # CR starts EOL
+              $eolfail = 1 if !$eol && $c2 == 012;
+              $eol = ($c2 == 015); # CR starts EOL
+              $eolfail = 1 if !$eol && $c3 == 012;
+              $eol = ($c3 == 015); # CR starts EOL
+            }
+            # Worry about if is truly text mode.
             $mode = 1 if $c1 & 0200; # Must be binary
             $eofpos++ unless $eof;
             $eof++ if $c1 == 032;
@@ -169,6 +181,7 @@ $foo = ".rsvd";
             push(@obuf, $c1, $c2);
         }
     }
+    warn "$f: warning: LF without CR\n" if $eolfail;
     # Force binary treatment for un-named files.
     $mode = 1 if $f =~ /^\..../;
 #warn "$f: mode is $mode\n" if $f =~ /$foo/;
@@ -251,6 +264,9 @@ foreach $x (@ARGV) {
     die "no <image>" unless /^<image name='(.*)' size=(.*)>$/;
     ($iname, $isize) = ($1, $2);
     open(IMAGE, ">$iname") || die "$iname: $!";
+    # Write the last block to force the size.
+    for ($i = 0; $i < 256; $i++) { $dbuf[$i] = 0; }
+    &writeblk($isize-1, @dbuf);
     while (&os8fs) {}
     die "no </image>" unless /^<\/image>$/;
 }

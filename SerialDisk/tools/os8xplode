@@ -329,9 +329,36 @@ sub os8fs {
 # blocks long.
 
 #
+# Volume size options
+# TODO: Add support for RL01, RL02 (up to 5 partitions!)
+$vsize{"rk05"} = 014540; # 2x3248 blocks
+$vsize{"rk"}   = 014540; # 2x3248 blocks
+$vsize{"rx01"} = 00756; # 494 blocks
+$vsize{"rx1"}  = 00756; # 494 blocks
+$vsize{"rx02"} = 01734; # 988 blocks
+$vsize{"rx2"}  = 01734; # 988 blocks
+$vsize{"dt"}   = 01341; # 737 blocks
+$vsize{"ltb"}  = 01600; # 896 blocks
+$vsize{"ltp"}  = 01400; # 768 blocks
+$vsize{"lts"}  = 01000; # 512 blocks
+$vsize{"lt"}   = 01000; # 512 blocks
+
+#
 # Top level.  Iterate over the arguments, which are supposed to be
 # disk images.
+undef $blocks;
 foreach $f (@ARGV) {
+
+  $next = 0;
+  foreach $dev (keys %vsize) {
+    if ($f =~ /^-$dev/) {
+      $blocks = $vsize{$dev};
+      $next = 1;
+      last;
+    }
+  }
+  next if $next;
+
   open(INPUT, $f) || die "$f: $!";
   binmode(INPUT);
   $dsk = $f; $f =~ s/.dsk$//;
@@ -341,8 +368,9 @@ foreach $f (@ARGV) {
 
   # Verify an integral number of blocks.
   ($_, $_, $_, $_, $_, $_, $_, $b, $_, $_, $ctime) = stat(INPUT);
+  $b += 256 if $b % $bsize; # DECtape kludge
   die "$dsk: Not an integral number of blocks!\n" if $b % $bsize;
-  $blocks = $b / $bsize; @b = ();
+  $blocks = $b / $bsize unless defined $blocks;
   printf XML "<image name='$dsk' size=0%o>\n", $blocks;
   $part = int(($blocks + 07777) / 010000);
   $fslen = int($blocks / $part);
